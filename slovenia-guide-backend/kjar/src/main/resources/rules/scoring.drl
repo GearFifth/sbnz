@@ -1,0 +1,89 @@
+package com.ftn.sbnz.rules.scoring;
+
+import com.ftn.sbnz.model.dtos.TravelPreferences;
+import com.ftn.sbnz.model.models.Location;
+import com.ftn.sbnz.model.models.Tag;
+import com.ftn.sbnz.model.dtos.Recommendation;
+import java.util.List;
+
+// Query koji pronalazi sve kreirane Recommendation objekte
+query "getRecommendations"
+    $rec: Recommendation()
+end
+
+// NIVO 1: Generisanje početnih preporuka na osnovu interesa korisnika
+rule "Reward locations based on interests"
+    agenda-group "scoring"
+    salience 10 // Dajemo viši prioritet da se ovo pravilo prvo izvrši
+    when
+        // Uslov 1: Imamo preference korisnika sa listom interesovanja
+        $prefs: TravelPreferences($interests: interests)
+
+        // Uslov 2: Postoji lokacija...
+        $location: Location($tags: tags)
+
+        // Uslov 3: ...koja još uvek nema kreiranu preporuku za sebe
+        not Recommendation(location == $location)
+
+        // Uslov 4: ...i čiji se bar jedan tag poklapa sa interesovanjima korisnika
+        exists Tag(name memberOf $interests) from $tags
+    then
+        // Akcija: Kreiraj novi Recommendation objekat za tu lokaciju sa početnim skorom od 10
+        Recommendation recommendation = new Recommendation($location, 10.0, "Poklapa se sa vašim interesovanjima.");
+        insert(recommendation); // Ubacujemo novu činjenicu u radnu memoriju
+        System.out.println("Kreirana preporuka za: " + $location.getName() + " sa početnim skorom 10.");
+end
+
+
+// NIVO 2: Fino podešavanje bodova na osnovu specifičnih pravila
+
+rule "Boost Bled for romance interest"
+    agenda-group "scoring"
+    no-loop true
+    when
+        // Ako korisnik ima interesovanje "romantika"
+        TravelPreferences(interests contains "romantika")
+        // I postoji preporuka za Blejsko jezero
+        $rec: Recommendation(location.name == "Blejsko jezero", $score: score)
+    then
+        // Povećaj skor i ažuriraj razlog
+        modify($rec) {
+            setScore($score + 20),
+            setReason($rec.getReason() + " Dodatni poeni za romantiku.")
+        }
+        System.out.println("Povećan skor za Bled (romantika). Novi skor: " + $rec.getScore());
+end
+
+rule "Boost Bohinj for adventure interest"
+    agenda-group "scoring"
+    no-loop true
+    when
+        // Ako korisnik ima interesovanje "avantura"
+        TravelPreferences(interests contains "avantura")
+        // I postoji preporuka za Bohinjsko jezero
+        $rec: Recommendation(location.name == "Bohinjsko jezero", $score: score)
+    then
+        // Povećaj skor i ažuriraj razlog
+        modify($rec) {
+            setScore($score + 20),
+            setReason($rec.getReason() + " Dodatni poeni za avanturu.")
+        }
+        System.out.println("Povećan skor za Bohinj (avantura). Novi skor: " + $rec.getScore());
+end
+
+rule "Penalize Skocjan for low fitness"
+    agenda-group "scoring"
+    no-loop true
+    when
+        // Ako korisnik ima nisku fizičku spremu
+        TravelPreferences(fitnessLevel == com.ftn.sbnz.model.enums.FitnessLevel.LOW)
+        // I postoji preporuka za Škocjanske jame
+        $rec: Recommendation(location.name == "Škocjanske jame", $score: score)
+    then
+        // Smanji skor i ažuriraj razlog
+        modify($rec) {
+            setScore($score - 30),
+            setReason($rec.getReason() + " Umanjen skor zbog visoke fizičke zahtevnosti.")
+        }
+        System.out.println("Smanjen skor za Škocjanske jame (niska sprema). Novi skor: " + $rec.getScore());
+end

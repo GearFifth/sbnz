@@ -1,0 +1,140 @@
+package com.ftn.sbnz.rules.itinerary;
+
+import com.ftn.sbnz.model.dtos.TravelPreferences;
+import com.ftn.sbnz.model.models.Location;
+import com.ftn.sbnz.model.models.Route;
+import com.ftn.sbnz.model.dtos.ItineraryItem;
+import java.util.List;
+import java.util.ArrayList;
+
+global java.util.List itinerary;
+
+// --- Pomoćni objekti ---
+declare DayPlanner
+    currentDay: int
+end
+
+declare DailyPlan
+    day: int
+    locations: java.util.List
+    totalTime: int
+end
+
+// NOVO: "Signal" da je planiranje završeno
+declare PlanningFinished
+end
+
+// --- Pravila za inicijalizaciiju ---
+rule "Initialize Day Planner and Daily Plans"
+    agenda-group "itinerary"
+    salience 100
+    when
+        $prefs: TravelPreferences($days: numberOfDays)
+        not DayPlanner()
+    then
+        insert(new DayPlanner(1));
+        for (int i = 1; i <= $days; i++) {
+            insert(new DailyPlan(i, new ArrayList<Location>(), 0));
+        }
+end
+
+// --- Glavna pravila za sklapanje plana ---
+rule "Assign top-rated location to Day 1"
+    agenda-group "itinerary"
+    salience 50
+    when
+        $location: Location()
+        $plan: DailyPlan(day == 1, locations.size == 0)
+    then
+        modify($plan) {
+            getLocations().add($location),
+            setTotalTime($plan.getTotalTime() + $location.getVisitTimeMinutes())
+        }
+        delete($location);
+        System.out.println("Dan 1: Dodata prva lokacija " + $location.getName());
+end
+
+rule "Iteratively group nearby locations in the same day"
+    agenda-group "itinerary"
+    no-loop true // Sprečava da se pravilo aktivira samo zbog sebe
+    salience 10
+    when
+        // Pronađi dnevni plan koji još nije pun
+        $plan: DailyPlan($day: day, $locations: locations, locations.size > 0, $totalTime: totalTime)
+
+        // Pronađi BILO KOJU lokaciju koja je VEĆ u tom planu
+        $existingLocation: Location() from $locations
+
+        // Pronađi NOVU, još nedodeljenu lokaciju
+        $newLocation: Location()
+
+        // Pronađi rutu između njih (u bilo kom smeru) koja je kratka (npr. < 45 min)
+        ( Route(locationA == $existingLocation, locationB == $newLocation, $time: travelTimeMinutes < 45) or
+          Route(locationA == $newLocation, locationB == $existingLocation, $time: travelTimeMinutes < 45) )
+
+        // Proveri da li imamo dovoljno vremena u danu za NOVU lokaciju i PUT do nje
+        // Primer: 8 sati = 480 minuta
+        eval($totalTime + $newLocation.getVisitTimeMinutes() + $time < 480)
+    then
+        // Ažuriraj dnevni plan i ukloni novu lokaciju iz razmatranja
+        modify($plan) {
+            getLocations().add($newLocation),
+            setTotalTime($plan.getTotalTime() + $newLocation.getVisitTimeMinutes() + $time)
+        }
+        delete($newLocation);
+        System.out.println("Dan " + $day + ": Iterativno dodata bliska lokacija " + $newLocation.getName());
+end
+
+rule "Assign next best location to a new day"
+    agenda-group "itinerary"
+    when
+        // Nađi prazan dnevni plan
+        $plan: DailyPlan(locations.size == 0)
+        // Nađi bilo koju preostalu lokaciju
+        $location: Location()
+    then
+        modify($plan) {
+            getLocations().add($location),
+            setTotalTime($plan.getTotalTime() + $location.getVisitTimeMinutes())
+        }
+        delete($location);
+        System.out.println("Dan " + $plan.getDay() + ": Početak sa lokacijom " + $location.getName());
+end
+
+// --- Finalna pravila ---
+
+// NOVO: Pravilo koje signalizira kraj kada više nema lokacija za raspoređivanje
+rule "Signal that planning is finished"
+    agenda-group "itinerary"
+    salience -50
+    when
+        not Location() // Kada su sve lokacije obrađene (obrisane)
+        not PlanningFinished() // I ako signal već ne postoji
+    then
+        insert(new PlanningFinished());
+end
+
+// AŽURIRANO: Pravilo se sada aktivira na signal, a ne na "not Location()"
+rule "Convert DailyPlans to ItineraryItems"
+    agenda-group "itinerary"
+    salience -100
+    when
+        PlanningFinished() // Aktivira se kada je planiranje gotovo
+        $plan: DailyPlan(locations.size > 0, $day: day, $locations: locations)
+    then
+        for (Object loc : $plan.getLocations()) {
+            Location location = (Location) loc;
+            itinerary.add(new ItineraryItem($day, location, "Poseta lokaciji: " + location.getName()));
+        }
+end
+
+// NOVO: "Cleanup" pravilo koje se izvršava među poslednjima
+rule "Cleanup unassigned locations"
+    agenda-group "itinerary"
+    salience -90 // Izvršava se pre finalne konverzije, ali posle svih pravila za dodeljivanje
+    when
+        $location: Location() // Pronađi bilo koju preostalu lokaciju
+    then
+        delete($location); // I jednostavno je obriši
+        System.out.println("Čišćenje neraspoređene lokacije: " + $location.getName());
+end

@@ -1,0 +1,43 @@
+package com.ftn.sbnz.rules.alerts;
+
+import com.ftn.sbnz.model.dtos.Alert;
+import com.ftn.sbnz.model.dtos.ItineraryItem;
+import com.ftn.sbnz.rules.itinerary.DailyPlan;
+import com.ftn.sbnz.model.models.Location;
+import java.util.List;
+import java.util.HashSet;
+
+// Definišemo globalnu promenljivu za upozorenja
+global java.util.List alerts;
+// Pomoćni global da sprečimo duplikate upozorenja
+global java.util.Set uniqueAlerts;
+
+
+// Pravilo koje proverava da li je plan za neki dan previše ambiciozan
+rule "Alert for overpacked day"
+    agenda-group "alerts"
+    salience -200 // Izvršava se na samom kraju
+    when
+        // Pronađi plan za dan gde je ukupno vreme preko 7 sati (420 min)
+        DailyPlan($day: day, totalTime > 420)
+    then
+        String message = "Plan za Dan " + $day + " je prilično ambiciozan. Proverite da li imate dovoljno vremena.";
+        if (uniqueAlerts.add(message)) {
+            alerts.add(new Alert(message));
+        }
+end
+
+// Pravilo koje proverava da li je potrebna posebna oprema
+rule "Alert for required equipment"
+    agenda-group "alerts"
+    salience -200
+    when
+        // Pronađi lokaciju u finalnom planu koja zahteva opremu
+        ItineraryItem($location: location, $location.requiredEquipment != null && !$location.requiredEquipment.isEmpty())
+    then
+        String message = "Za posetu lokaciji '" + $location.getName() + "' preporučuje se: " + $location.getRequiredEquipment();
+        // Koristimo Set da izbegnemo duplikate istog upozorenja
+        if (uniqueAlerts.add(message)) {
+            alerts.add(new Alert(message));
+        }
+end

@@ -1,5 +1,6 @@
 package com.ftn.sbnz.model.models;
 
+import com.ftn.sbnz.model.enums.UserRole;
 import jakarta.persistence.*;
 import lombok.Data;
 

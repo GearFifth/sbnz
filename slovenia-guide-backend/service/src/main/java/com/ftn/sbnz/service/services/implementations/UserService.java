@@ -1,14 +1,14 @@
-package com.ftn.sbnz.service.services;
+package com.ftn.sbnz.service.services.implementations;
 
 import com.ftn.sbnz.model.dtos.users.requests.UpdateUserRequest;
 import com.ftn.sbnz.model.dtos.users.responses.UserResponse;
 import com.ftn.sbnz.model.models.User;
 import com.ftn.sbnz.service.exceptions.UserNotFoundException;
 import com.ftn.sbnz.service.repositories.IUserRepository;
+import com.ftn.sbnz.service.services.IUserService;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.context.annotation.Primary;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.Collection;

@@ -5,9 +5,8 @@ import com.ftn.sbnz.model.dtos.users.requests.RegisterRequest;
 import com.ftn.sbnz.model.dtos.users.responses.LoginResponse;
 import com.ftn.sbnz.model.dtos.users.responses.UserResponse;
 import com.ftn.sbnz.model.models.User;
-import com.ftn.sbnz.model.models.UserRole;
+import com.ftn.sbnz.model.enums.UserRole;
 import com.ftn.sbnz.service.exceptions.InvalidCredentialsException;
-import com.ftn.sbnz.service.exceptions.InvalidTokenException;
 import com.ftn.sbnz.service.repositories.IUserRepository;
 import com.ftn.sbnz.service.security.UserPrincipal;
 import lombok.RequiredArgsConstructor;
@@ -19,9 +18,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-
-import java.util.HashMap;
-import java.util.Map;
 
 @RequiredArgsConstructor
 @Service
@@ -53,7 +49,7 @@ public class AuthService implements IAuthService {
     public LoginResponse login(LoginRequest request) {
         try {
             Authentication authentication = authManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword())
+                    new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
             );
             UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
 
