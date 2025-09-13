@@ -92,3 +92,8 @@ INSERT INTO public.route (id, location_a_id, location_b_id, travel_time_minutes)
                                                                                      (gen_random_uuid(), (SELECT id FROM public.location WHERE name='Piran'), (SELECT id FROM public.location WHERE name='Kranjska Gora'), 140),
                                                                                      (gen_random_uuid(), (SELECT id FROM public.location WHERE name='Piran'), (SELECT id FROM public.location WHERE name='Maribor'), 195),
                                                                                      (gen_random_uuid(), (SELECT id FROM public.location WHERE name='Kranjska Gora'), (SELECT id FROM public.location WHERE name='Maribor'), 180);
+
+-- ########## 5. KREIRANJE PARAMETARA ZA PRAVILA ##########
+INSERT INTO public.rule_parameter (param_key, param_value) VALUES
+                                                               ('BUDGET_LIMIT_LOW', 15.0),
+                                                               ('BUDGET_LIMIT_MEDIUM', 40.0);

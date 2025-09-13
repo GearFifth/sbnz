@@ -8,6 +8,7 @@ import com.ftn.sbnz.model.dtos.travelPlan.TravelPlanResponse;
 import com.ftn.sbnz.model.models.Location;
 import com.ftn.sbnz.service.repositories.ILocationRepository;
 import com.ftn.sbnz.service.repositories.IRouteRepository;
+import com.ftn.sbnz.service.repositories.IRuleParameterRepository;
 import com.ftn.sbnz.service.services.ITravelPlanService;
 import lombok.RequiredArgsConstructor;
 import org.kie.api.runtime.KieContainer;
@@ -26,8 +27,8 @@ import java.util.stream.Collectors;
 public class TravelPlanService implements ITravelPlanService {
     private final KieContainer kieContainer;
     private final ILocationRepository locationRepository;
-
-    private final IRouteRepository routeRepository; // Dodajemo repozitorijum za rute
+    private final IRouteRepository routeRepository;
+    private final IRuleParameterRepository ruleParameterRepository;
 
     @Override
     public TravelPlanResponse generatePlan(TravelPreferences preferences) {
@@ -36,6 +37,7 @@ public class TravelPlanService implements ITravelPlanService {
         scoringSession.getAgenda().getAgendaGroup("scoring").setFocus();
         scoringSession.insert(preferences);
         locationRepository.findAll().forEach(scoringSession::insert);
+        ruleParameterRepository.findAll().forEach(scoringSession::insert);
         scoringSession.fireAllRules();
 
         List<Recommendation> recommendations = new ArrayList<>();
