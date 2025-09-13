@@ -60,34 +60,3 @@ rule "Filter out seasonally closed locations"
         System.out.println("Filtrirana lokacija zbog sezone: " + $location.getName());
 end
 
-rule "Filter expensive locations for LOW budget"
-    agenda-group "scoring"
-    salience 20 // Isti prioritet kao i ostala pravila za filtriranje
-    when
-        // Uslov 1: Korisnikov budžet je NIZAK
-        TravelPreferences(budget == Budget.LOW)
-        // Uslov 2: Učitaj parametar za granicu niskog budžeta
-        RuleParameter(paramKey == "BUDGET_LIMIT_LOW", $limit: paramValue)
-        // Uslov 3: Pronađi lokaciju čija je cena veća od te granice
-        $location: Location(ticketPrice > $limit)
-    then
-        delete($location);
-        System.out.println("Filtrirana lokacija zbog niskog budžeta: " + $location.getName());
-end
-
-rule "Filter expensive locations for MEDIUM budget"
-    agenda-group "scoring"
-    salience 20
-    when
-        // Uslov 1: Korisnikov budžet je SREDNJI
-        TravelPreferences(budget == Budget.MEDIUM)
-        // Uslov 2: Učitaj parametar za granicu srednjeg budžeta
-        RuleParameter(paramKey == "BUDGET_LIMIT_MEDIUM", $limit: paramValue)
-        // Uslov 3: Pronađi lokaciju čija je cena veća od te granice
-        $location: Location(ticketPrice > $limit)
-    then
-        delete($location);
-        System.out.println("Filtrirana lokacija zbog srednjeg budžeta: " + $location.getName());
-end
-
-

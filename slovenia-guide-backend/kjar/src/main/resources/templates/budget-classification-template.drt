@@ -1,0 +1,22 @@
+template header
+budgetCategory
+priceLimit
+
+package com.ftn.sbnz.rules.templates;
+
+import com.ftn.sbnz.model.models.Location;
+import com.ftn.sbnz.model.dtos.TravelPreferences;
+import com.ftn.sbnz.model.enums.Budget;
+
+template "Filter expensive locations for @{row.budgetCategory} budget"
+    agenda-group "scoring"
+    salience 20
+    when
+        TravelPreferences(budget == Budget.valueOf("@{budgetCategory}"))
+        $location: Location(ticketPrice > @{priceLimit})
+    then
+        delete($location);
+        System.out.println("Filtrirana lokacija (preko templejta) zbog " + "@{budgetCategory}" + " budžeta: " + $location.getName());
+end
+
+end template
