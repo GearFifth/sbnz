@@ -2,6 +2,8 @@ package com.ftn.sbnz.service;
 
 import java.util.Arrays;
 
+import org.kie.api.runtime.KieSession;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
@@ -30,6 +32,13 @@ public class ServiceApplication  {
 		KieScanner kScanner = ks.newKieScanner(kContainer);
 		kScanner.start(1000);
 		return kContainer;
+	}
+
+	@Bean
+	@Qualifier("cepSession") // Dajemo joj jedinstveno ime
+	public KieSession cepSession(KieContainer kieContainer) {
+		// Tražimo sesiju po imenu koje smo definisali u kmodule.xml
+		return kieContainer.newKieSession("cepSession");
 	}
 	
 	/*

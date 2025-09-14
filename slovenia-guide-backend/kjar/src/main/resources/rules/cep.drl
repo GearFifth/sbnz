@@ -2,25 +2,30 @@ package com.ftn.sbnz.rules.cep;
 
 import com.ftn.sbnz.model.events.RoadStatusEvent;
 import com.ftn.sbnz.model.enums.RoadStatus;
-import com.ftn.sbnz.model.models.Location;
+import com.ftn.sbnz.model.dtos.travelPlan.TravelPlanResponse;
+import com.ftn.sbnz.model.dtos.ItineraryItem;
 
-// KLJUČNO: Deklarišemo našu klasu kao događaj (event)
-// Ovo omogućava Drools-u da je tretira kao nešto što se dešava u vremenu.
 declare RoadStatusEvent
     @role(event)
+    @timestamp(timestamp) // Kažemo Drools-u koje polje je vremenska oznaka
 end
 
-// Pravilo koje filtrira lokacije ako je ključni put do njih zatvoren
-rule "Filter locations based on road closure"
-    agenda-group "scoring"
-    salience 30 // Najviši prioritet, izvršava se pre svih ostalih filtera
+// Pravilo reaguje na događaj zatvaranja puta i proverava da li utiče na neki od planova u memoriji
+rule "React to Vrsic Pass Closure on existing plans"
     when
-        // Uslov 1: Postoji događaj da je prelaz Vršič ZATVOREN
-        RoadStatusEvent(roadName == "Vršič", status == RoadStatus.CLOSED)
+        // Uslov 1: Stigao je događaj da je prelaz Vršič ZATVOREN
+        $event: RoadStatusEvent(roadName == "Vršič", status == RoadStatus.CLOSED)
 
-        // Uslov 2: Postoji lokacija koja direktno zavisi od tog prelaza
-        $location: Location(name == "Triglavski narodni park")
+        // Uslov 2: U memoriji postoji plan putovanja...
+        $plan: TravelPlanResponse($itinerary: itinerary)
+
+        // Uslov 3: ...koji u svom itinereru sadrži lokaciju koja zavisi od Vršiča
+        exists ItineraryItem(location.name == "Triglavski narodni park" || location.name == "Kranjska Gora") from $itinerary
     then
-        delete($location);
-        System.out.println("Filtrirana lokacija (CEP) '" + $location.getName() + "' jer je prelaz Vršič zatvoren.");
+        // Akcija: Za sada, samo ispisujemo kritično upozorenje u konzoli
+        // U realnoj aplikaciji, ovde bi se dodao Alert u bazu ili poslala notifikacija
+        System.out.println("====== KRITIČNO UPOZORENJE (CEP) ======");
+        System.out.println("! Putni prelaz Vršič je upravo ZATVOREN !");
+        System.out.println("! Ovo utiče na generisani plan putovanja !");
+        System.out.println("=========================================");
 end

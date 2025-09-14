@@ -3,4 +3,7 @@
     <kbase name="sbnzKbase">
         <ksession name="sbnzRulesSession" default="true"/>
     </kbase>
+    <kbase name="cepKbase" eventProcessingMode="stream" packages="com.ftn.sbnz.rules.cep">
+        <ksession name="cepSession"/>
+    </kbase>
 </kmodule>

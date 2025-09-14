@@ -15,6 +15,7 @@ import org.kie.api.runtime.KieContainer;
 import org.kie.api.runtime.KieSession;
 import org.kie.api.runtime.rule.QueryResults;
 import org.kie.api.runtime.rule.QueryResultsRow;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -25,11 +26,14 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class TravelPlanService implements ITravelPlanService {
+
+    @Qualifier("cepSession")
+    private final KieSession cepSession;
+
     private final KieContainer kieContainer;
     private final ILocationRepository locationRepository;
     private final IRouteRepository routeRepository;
     private final IRuleParameterRepository ruleParameterRepository;
-    private final RoadStatusService roadStatusService;
 
     @Override
     public TravelPlanResponse generatePlan(TravelPreferences preferences) {
@@ -39,7 +43,6 @@ public class TravelPlanService implements ITravelPlanService {
         scoringSession.insert(preferences);
         locationRepository.findAll().forEach(scoringSession::insert);
         ruleParameterRepository.findAll().forEach(scoringSession::insert);
-        roadStatusService.getActiveEvents().forEach(scoringSession::insert);
         scoringSession.fireAllRules();
 
         List<Recommendation> recommendations = new ArrayList<>();
@@ -81,6 +84,13 @@ public class TravelPlanService implements ITravelPlanService {
         session.dispose(); // Uništi sesiju tek na kraju
 
         itinerary.sort(Comparator.comparing(ItineraryItem::getDay));
-        return new TravelPlanResponse(itinerary, alerts);
+
+        TravelPlanResponse response = new TravelPlanResponse(itinerary, alerts);
+
+        // DODATO: Ubacujemo finalni plan u CEP sesiju da ga ona "nadgleda"
+        cepSession.insert(response);
+        cepSession.fireAllRules();
+
+        return response;
     }
 }
