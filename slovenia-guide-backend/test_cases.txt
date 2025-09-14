@@ -1,0 +1,39 @@
+{
+    "numberOfDays": 3,
+    "budget": "HIGH",
+    "transport": "CAR",
+    "fitnessLevel": "HIGH",
+    "interests": ["UNESCO", "pećina", "istorija WW1"],
+    "travelMonth": 3
+}
+
+
+{
+    "numberOfDays": 3,
+    "budget": "MEDIUM",
+    "transport": "PUBLIC_TRANSPORT",
+    "fitnessLevel": "MEDIUM",
+    "interests": ["priroda", "planinarenje", "romantika"],
+    "travelMonth": 6
+}
+
+
+----------- CEP ------------
+Za aktiviranje dogadjaja salje admin
+{
+    "roadName": "Vršič",
+    "status": "CLOSED"
+}
+
+za testiranje:
+{
+    "numberOfDays": 3,
+    "budget": "HIGH",
+    "transport": "CAR",
+    "fitnessLevel": "HIGH",
+    "interests": ["priroda"],
+    "travelMonth": 8
+}
+
+Test bez događaja: Triglavski narodni park kao preporuka.
+Test sa događajem: Filtrirana lokacija (CEP) 'Triglavski narodni park' jer je prelaz Vršič zatvoren.

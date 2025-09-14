@@ -29,6 +29,7 @@ public class TravelPlanService implements ITravelPlanService {
     private final ILocationRepository locationRepository;
     private final IRouteRepository routeRepository;
     private final IRuleParameterRepository ruleParameterRepository;
+    private final RoadStatusService roadStatusService;
 
     @Override
     public TravelPlanResponse generatePlan(TravelPreferences preferences) {
@@ -38,6 +39,7 @@ public class TravelPlanService implements ITravelPlanService {
         scoringSession.insert(preferences);
         locationRepository.findAll().forEach(scoringSession::insert);
         ruleParameterRepository.findAll().forEach(scoringSession::insert);
+        roadStatusService.getActiveEvents().forEach(scoringSession::insert);
         scoringSession.fireAllRules();
 
         List<Recommendation> recommendations = new ArrayList<>();

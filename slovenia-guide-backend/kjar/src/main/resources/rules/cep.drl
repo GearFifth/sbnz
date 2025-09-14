@@ -1,0 +1,26 @@
+package com.ftn.sbnz.rules.cep;
+
+import com.ftn.sbnz.model.events.RoadStatusEvent;
+import com.ftn.sbnz.model.enums.RoadStatus;
+import com.ftn.sbnz.model.models.Location;
+
+// KLJUČNO: Deklarišemo našu klasu kao događaj (event)
+// Ovo omogućava Drools-u da je tretira kao nešto što se dešava u vremenu.
+declare RoadStatusEvent
+    @role(event)
+end
+
+// Pravilo koje filtrira lokacije ako je ključni put do njih zatvoren
+rule "Filter locations based on road closure"
+    agenda-group "scoring"
+    salience 30 // Najviši prioritet, izvršava se pre svih ostalih filtera
+    when
+        // Uslov 1: Postoji događaj da je prelaz Vršič ZATVOREN
+        RoadStatusEvent(roadName == "Vršič", status == RoadStatus.CLOSED)
+
+        // Uslov 2: Postoji lokacija koja direktno zavisi od tog prelaza
+        $location: Location(name == "Triglavski narodni park")
+    then
+        delete($location);
+        System.out.println("Filtrirana lokacija (CEP) '" + $location.getName() + "' jer je prelaz Vršič zatvoren.");
+end
