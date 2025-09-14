@@ -21,6 +21,7 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -40,6 +41,14 @@ public class TravelPlanService implements ITravelPlanService {
         // === FAZA 1: Filtriranje i Bodovanje (ostaje isto) ===
         KieSession scoringSession = kieContainer.newKieSession();
         scoringSession.getAgenda().getAgendaGroup("scoring").setFocus();
+
+        QueryResults results = cepSession.getQueryResults("getActiveRoadStatusEvents");
+        System.out.println("Pronađeno " + results.size() + " aktivnih CEP događaja.");
+        for (QueryResultsRow row : results) {
+            // I svaki pronađeni događaj ubacujemo u našu novu sesiju za planiranje
+            scoringSession.insert(row.get("$event"));
+        }
+
         scoringSession.insert(preferences);
         locationRepository.findAll().forEach(scoringSession::insert);
         ruleParameterRepository.findAll().forEach(scoringSession::insert);
@@ -85,7 +94,7 @@ public class TravelPlanService implements ITravelPlanService {
 
         itinerary.sort(Comparator.comparing(ItineraryItem::getDay));
 
-        TravelPlanResponse response = new TravelPlanResponse(itinerary, alerts);
+        TravelPlanResponse response = new TravelPlanResponse(UUID.randomUUID(), itinerary, alerts);
 
         // DODATO: Ubacujemo finalni plan u CEP sesiju da ga ona "nadgleda"
         cepSession.insert(response);

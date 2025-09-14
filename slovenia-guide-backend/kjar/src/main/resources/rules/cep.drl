@@ -4,28 +4,30 @@ import com.ftn.sbnz.model.events.RoadStatusEvent;
 import com.ftn.sbnz.model.enums.RoadStatus;
 import com.ftn.sbnz.model.dtos.travelPlan.TravelPlanResponse;
 import com.ftn.sbnz.model.dtos.ItineraryItem;
+import com.ftn.sbnz.model.dtos.Alert;
+import java.util.UUID;
 
 declare RoadStatusEvent
     @role(event)
     @timestamp(timestamp) // Kažemo Drools-u koje polje je vremenska oznaka
 end
 
-// Pravilo reaguje na događaj zatvaranja puta i proverava da li utiče na neki od planova u memoriji
+query "getAlertsForPlan"(UUID pId)
+    $alert: Alert(planId == pId)
+end
+
+query "getActiveRoadStatusEvents"
+    $event: RoadStatusEvent()
+end
+
 rule "React to Vrsic Pass Closure on existing plans"
     when
-        // Uslov 1: Stigao je događaj da je prelaz Vršič ZATVOREN
         $event: RoadStatusEvent(roadName == "Vršič", status == RoadStatus.CLOSED)
-
-        // Uslov 2: U memoriji postoji plan putovanja...
-        $plan: TravelPlanResponse($itinerary: itinerary)
-
-        // Uslov 3: ...koji u svom itinereru sadrži lokaciju koja zavisi od Vršiča
+        $plan: TravelPlanResponse($itinerary: itinerary, $planId: planId)
         exists ItineraryItem(location.name == "Triglavski narodni park" || location.name == "Kranjska Gora") from $itinerary
     then
-        // Akcija: Za sada, samo ispisujemo kritično upozorenje u konzoli
-        // U realnoj aplikaciji, ovde bi se dodao Alert u bazu ili poslala notifikacija
-        System.out.println("====== KRITIČNO UPOZORENJE (CEP) ======");
-        System.out.println("! Putni prelaz Vršič je upravo ZATVOREN !");
-        System.out.println("! Ovo utiče na generisani plan putovanja !");
-        System.out.println("=========================================");
+        // Akcija: Kreiraj i ubaci novi Alert fact u sesiju
+        String message = "Kritično upozorenje: Putni prelaz Vršič je zatvoren, vaš plan za posetu Gorenjskoj je ugrožen!";
+        insert(new Alert(message, $planId));
+        System.out.println("====== Ubačeno kritično upozorenje (CEP) za plan " + $planId + " ======");
 end

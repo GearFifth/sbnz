@@ -23,7 +23,7 @@ rule "Alert for overpacked day"
     then
         String message = "Plan za Dan " + $day + " je prilično ambiciozan. Proverite da li imate dovoljno vremena.";
         if (uniqueAlerts.add(message)) {
-            alerts.add(new Alert(message));
+            alerts.add(new Alert(message, null));
         }
 end
 
@@ -38,6 +38,6 @@ rule "Alert for required equipment"
         String message = "Za posetu lokaciji '" + $location.getName() + "' preporučuje se: " + $location.getRequiredEquipment();
         // Koristimo Set da izbegnemo duplikate istog upozorenja
         if (uniqueAlerts.add(message)) {
-            alerts.add(new Alert(message));
+            alerts.add(new Alert(message, null));
         }
 end

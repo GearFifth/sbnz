@@ -6,6 +6,8 @@ import com.ftn.sbnz.model.enums.Transport;
 import com.ftn.sbnz.model.enums.PublicTransportAccessibility;
 import com.ftn.sbnz.model.models.RuleParameter;
 import com.ftn.sbnz.model.enums.Budget;
+import com.ftn.sbnz.model.events.RoadStatusEvent;
+import com.ftn.sbnz.model.enums.RoadStatus;
 
 // Query koji jednostavno pronalazi sve preostale Location objekte u radnoj memoriji.
 query "getLocations"
@@ -90,4 +92,13 @@ rule "Filter expensive locations for MEDIUM budget"
         System.out.println("Filtrirana lokacija zbog srednjeg budžeta: " + $location.getName());
 end
 
-
+rule "Filter locations if access road is closed"
+    agenda-group "scoring"
+    salience 30 // Visok prioritet, izvršava se pre bodovanja
+    when
+        RoadStatusEvent(roadName == "Vršič", status == RoadStatus.CLOSED)
+        $location: Location(name == "Triglavski narodni park" || name == "Kranjska Gora")
+    then
+        delete($location);
+        System.out.println("Filtrirana lokacija (zbog CEP događaja) '" + $location.getName() + "' jer je prelaz Vršič zatvoren.");
+end

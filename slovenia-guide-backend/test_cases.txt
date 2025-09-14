@@ -8,6 +8,9 @@
 }
 
 
+----------- SCORING ------------
+- ovim upitom bi trebao bled da dobije vise bodova zbog taga 'romantika'
+
 {
     "numberOfDays": 3,
     "budget": "MEDIUM",
@@ -19,11 +22,6 @@
 
 
 ----------- CEP ------------
-Za aktiviranje dogadjaja salje admin
-{
-    "roadName": "Vršič",
-    "status": "CLOSED"
-}
 
 za testiranje:
 {
@@ -32,8 +30,14 @@ za testiranje:
     "transport": "CAR",
     "fitnessLevel": "HIGH",
     "interests": ["priroda"],
-    "travelMonth": 8
+    "travelMonth": 7
 }
 
 Test bez događaja: Triglavski narodni park kao preporuka.
-Test sa događajem: Filtrirana lokacija (CEP) 'Triglavski narodni park' jer je prelaz Vršič zatvoren.
+Kada se dogodi CEP dogadjaj korisnik dobija informaciju o upozorenju (endpoint za critical alerts).
+Za aktiviranje dogadjaja salje admin
+{
+    "roadName": "Vršič",
+    "status": "CLOSED"
+}
+Ukoliko korisnik nakon ovoga ponovo posalje upit za generisanje plana, nece se uzimati u obzir triglavski park zbog vrsica
