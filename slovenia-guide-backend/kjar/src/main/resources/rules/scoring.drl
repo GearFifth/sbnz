@@ -87,3 +87,117 @@ rule "Penalize Skocjan for low fitness"
         }
         System.out.println("Smanjen skor za Škocjanske jame (niska sprema). Novi skor: " + $rec.getScore());
 end
+
+rule "Reward Postojna for families"
+    agenda-group "scoring"
+    no-loop true
+    when
+        TravelPreferences(interests contains "porodice")
+        $rec: Recommendation(location.name == "Postojnska jama", $score: score)
+    then
+        modify($rec) {
+            setScore($score + 15),
+            setReason($rec.getReason() + " Dodatni poeni za porodične aktivnosti.")
+        }
+        System.out.println("Povećan skor za Postojnsku jamu (porodice). Novi skor: " + $rec.getScore());
+end
+
+rule "Reward Bohinj for authenticity"
+    agenda-group "scoring"
+    no-loop true
+    when
+        TravelPreferences(interests contains "autentično")
+        $rec: Recommendation(location.name == "Bohinjsko jezero", $score: score)
+    then
+        modify($rec) {
+            setScore($score + 15),
+            setReason($rec.getReason() + " Dodatni poeni za autentično iskustvo prirode.")
+        }
+        System.out.println("Povećan skor za Bohinj (autentičnost). Novi skor: " + $rec.getScore());
+end
+
+rule "Reward Skocjan Caves for specific interests"
+    agenda-group "scoring"
+    no-loop true
+    when
+        // Uslov se aktivira ako korisnik ima BILO KOJE od ova dva interesovanja
+        TravelPreferences(interests contains "UNESCO" || interests contains "geologija")
+        $rec: Recommendation(location.name == "Škocjanske jame", $score: score)
+    then
+        modify($rec) {
+            setScore($score + 25),
+            setReason($rec.getReason() + " Visok bonus za UNESCO i geološka interesovanja.")
+        }
+        System.out.println("Povećan skor za Škocjanske jame (UNESCO/geologija). Novi skor: " + $rec.getScore());
+end
+
+rule "Promote the Postojna + Predjama Castle package"
+    agenda-group "scoring"
+    no-loop true
+    salience -5 // Niži prioritet, izvršava se nakon osnovnog bodovanja
+    when
+        // Pronađi preporuku za Postojnsku jamu
+        $rec1: Recommendation(location.name == "Postojnska jama", $score1: score)
+        // Pronađi preporuku za Predjamski grad
+        $rec2: Recommendation(location.name == "Predjamski grad", $score2: score)
+    then
+        // Povećaj skor obema, jer čine dobru celinu
+        modify($rec1) {
+            setScore($score1 + 10),
+            setReason($rec1.getReason() + " Bonus jer je u paketu sa Predjamskim gradom.")
+        }
+        modify($rec2) {
+            setScore($score2 + 10),
+            setReason($rec2.getReason() + " Bonus jer je u paketu sa Postojnskom jamom.")
+        }
+        System.out.println("Povećan skor za Postojnu i Predjamski grad kao paket.");
+end
+
+rule "Promote Ljubljana as a base for longer trips"
+    agenda-group "scoring"
+    no-loop true
+    when
+        // Ako putovanje traje 3 ili više dana
+        TravelPreferences(numberOfDays >= 3)
+        $rec: Recommendation(location.name == "Ljubljana", $score: score)
+    then
+        modify($rec) {
+            setScore($score + 15),
+            setReason($rec.getReason() + " Bonus kao odlična baza za duže putovanje.")
+        }
+        System.out.println("Povećan skor za Ljubljanu (baza). Novi skor: " + $rec.getScore());
+end
+
+rule "Synergy between Soca Valley and Kobarid Museum"
+    agenda-group "scoring"
+    no-loop true
+    salience -5
+    when
+        // Ako korisnika interesuje i avantura i istorija
+        TravelPreferences(interests contains "avantura", interests contains "istorija")
+        // I ako već postoje preporuke za obe lokacije
+        $rec1: Recommendation(location.name == "Dolina Soče", $score1: score)
+        $rec2: Recommendation(location.name == "Kobariški muzej", $score2: score)
+    then
+        // Povećaj skor obema, jer zajedno čine bolje iskustvo
+        modify($rec1) { setScore($score1 + 20) }
+        modify($rec2) { setScore($score2 + 20) }
+        System.out.println("Povećan skor za Dolinu Soče i Kobariški muzej kao paket.");
+end
+
+rule "Promote Eastern Heritage Trail"
+    agenda-group "scoring"
+    no-loop true
+    when
+        // Ako korisnika interesuje vino i istorija
+        TravelPreferences(interests contains "vino", interests contains "istorija")
+        // I pronađi preporuku za BILO KOJU od tri lokacije iz ovog klastera (ISPRAVLJENO)
+        $rec: Recommendation(location.name in ("Maribor", "Ptuj", "Celje"), $score: score)
+    then
+        // Povećaj im skor jer odgovaraju tematskoj celini
+        modify($rec) {
+            setScore($score + 25),
+            setReason($rec.getReason() + " Bonus kao deo Staze istočnog nasleđa.")
+        }
+        System.out.println("Povećan skor za " + $rec.getLocation().getName() + " (istočno nasleđe).");
+end

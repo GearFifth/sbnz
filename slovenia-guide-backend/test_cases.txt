@@ -20,6 +20,28 @@
     "travelMonth": 6
 }
 
+- slucaj 2
+{
+    "numberOfDays": 3,
+    "budget": "MEDIUM",
+    "transport": "PUBLIC_TRANSPORT",
+    "fitnessLevel": "MEDIUM",
+    "interests": ["pećina", "porodice"],
+    "travelMonth": 6
+}
+
+-slucaj 3
+{
+    "numberOfDays": 4,
+    "budget": "HIGH",
+    "transport": "CAR",
+    "fitnessLevel": "HIGH",
+    "interests": ["istorija", "vino", "avantura"],
+    "travelMonth": 8
+}
+Maribor, Ptuj i Celje
+Dolina Soče i Kobariški muzej
+
 
 ----------- CEP ------------
 
