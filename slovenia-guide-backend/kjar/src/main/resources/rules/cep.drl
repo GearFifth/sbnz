@@ -2,25 +2,32 @@ package com.ftn.sbnz.rules.cep;
 
 import com.ftn.sbnz.model.events.RoadStatusEvent;
 import com.ftn.sbnz.model.enums.RoadStatus;
-import com.ftn.sbnz.model.models.Location;
+import com.ftn.sbnz.model.dtos.travelPlan.TravelPlanResponse;
+import com.ftn.sbnz.model.dtos.ItineraryItem;
+import com.ftn.sbnz.model.dtos.Alert;
+import java.util.UUID;
 
-// KLJUČNO: Deklarišemo našu klasu kao događaj (event)
-// Ovo omogućava Drools-u da je tretira kao nešto što se dešava u vremenu.
 declare RoadStatusEvent
     @role(event)
+    @timestamp(timestamp) // Kažemo Drools-u koje polje je vremenska oznaka
 end
 
-// Pravilo koje filtrira lokacije ako je ključni put do njih zatvoren
-rule "Filter locations based on road closure"
-    agenda-group "scoring"
-    salience 30 // Najviši prioritet, izvršava se pre svih ostalih filtera
-    when
-        // Uslov 1: Postoji događaj da je prelaz Vršič ZATVOREN
-        RoadStatusEvent(roadName == "Vršič", status == RoadStatus.CLOSED)
+query "getAlertsForPlan"(UUID pId)
+    $alert: Alert(planId == pId)
+end
 
-        // Uslov 2: Postoji lokacija koja direktno zavisi od tog prelaza
-        $location: Location(name == "Triglavski narodni park")
+query "getActiveRoadStatusEvents"
+    $event: RoadStatusEvent()
+end
+
+rule "React to Vrsic Pass Closure on existing plans"
+    when
+        $event: RoadStatusEvent(roadName == "Vršič", status == RoadStatus.CLOSED)
+        $plan: TravelPlanResponse($itinerary: itinerary, $planId: planId)
+        exists ItineraryItem(location.name == "Triglavski narodni park" || location.name == "Kranjska Gora") from $itinerary
     then
-        delete($location);
-        System.out.println("Filtrirana lokacija (CEP) '" + $location.getName() + "' jer je prelaz Vršič zatvoren.");
+        // Akcija: Kreiraj i ubaci novi Alert fact u sesiju
+        String message = "Kritično upozorenje: Putni prelaz Vršič je zatvoren, vaš plan za posetu Gorenjskoj je ugrožen!";
+        insert(new Alert(message, $planId));
+        System.out.println("====== Ubačeno kritično upozorenje (CEP) za plan " + $planId + " ======");
 end

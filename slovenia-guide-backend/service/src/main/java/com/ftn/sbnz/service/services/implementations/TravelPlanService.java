@@ -15,31 +15,43 @@ import org.kie.api.runtime.KieContainer;
 import org.kie.api.runtime.KieSession;
 import org.kie.api.runtime.rule.QueryResults;
 import org.kie.api.runtime.rule.QueryResultsRow;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class TravelPlanService implements ITravelPlanService {
+
+    @Qualifier("cepSession")
+    private final KieSession cepSession;
+
     private final KieContainer kieContainer;
     private final ILocationRepository locationRepository;
     private final IRouteRepository routeRepository;
     private final IRuleParameterRepository ruleParameterRepository;
-    private final RoadStatusService roadStatusService;
 
     @Override
     public TravelPlanResponse generatePlan(TravelPreferences preferences) {
         // === FAZA 1: Filtriranje i Bodovanje (ostaje isto) ===
         KieSession scoringSession = kieContainer.newKieSession();
         scoringSession.getAgenda().getAgendaGroup("scoring").setFocus();
+
+        QueryResults results = cepSession.getQueryResults("getActiveRoadStatusEvents");
+        System.out.println("Pronađeno " + results.size() + " aktivnih CEP događaja.");
+        for (QueryResultsRow row : results) {
+            // I svaki pronađeni događaj ubacujemo u našu novu sesiju za planiranje
+            scoringSession.insert(row.get("$event"));
+        }
+
         scoringSession.insert(preferences);
         locationRepository.findAll().forEach(scoringSession::insert);
         ruleParameterRepository.findAll().forEach(scoringSession::insert);
-        roadStatusService.getActiveEvents().forEach(scoringSession::insert);
         scoringSession.fireAllRules();
 
         List<Recommendation> recommendations = new ArrayList<>();
@@ -81,6 +93,13 @@ public class TravelPlanService implements ITravelPlanService {
         session.dispose(); // Uništi sesiju tek na kraju
 
         itinerary.sort(Comparator.comparing(ItineraryItem::getDay));
-        return new TravelPlanResponse(itinerary, alerts);
+
+        TravelPlanResponse response = new TravelPlanResponse(UUID.randomUUID(), itinerary, alerts);
+
+        // DODATO: Ubacujemo finalni plan u CEP sesiju da ga ona "nadgleda"
+        cepSession.insert(response);
+        cepSession.fireAllRules();
+
+        return response;
     }
 }
