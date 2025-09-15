@@ -12,10 +12,12 @@ public class TravelPlanResponse {
     private UUID planId;
     private List<ItineraryItem> itinerary;
     private List<Alert> alerts;
+    private String tripType;
 
-    public TravelPlanResponse(UUID planId, List<ItineraryItem> itinerary, List<Alert> alerts) {
+    public TravelPlanResponse(UUID planId, List<ItineraryItem> itinerary, List<Alert> alerts, String tripType) {
         this.planId = planId;
         this.itinerary = itinerary;
         this.alerts = alerts;
+        this.tripType = tripType;
     }
 }

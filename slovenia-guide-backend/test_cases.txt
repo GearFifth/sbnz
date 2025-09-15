@@ -63,3 +63,36 @@ Za aktiviranje dogadjaja salje admin
     "status": "CLOSED"
 }
 Ukoliko korisnik nakon ovoga ponovo posalje upit za generisanje plana, nece se uzimati u obzir triglavski park zbog vrsica
+
+
+----------- BACKWARD CHAINING -----------
+{
+    "numberOfDays": 3,
+    "budget": "HIGH",
+    "transport": "CAR",
+    "fitnessLevel": "LOW",
+    "interests": ["grad", "kultura", "muzeji", "arhitektura", "gastronomija"],
+    "travelMonth": 9
+}
+Opuštena gradska tura posvećena kulturi
+
+{
+    "numberOfDays": 2,
+    "budget": "HIGH",
+    "transport": "CAR",
+    "fitnessLevel": "HIGH",
+    "interests": ["pećina", "UNESCO", "izazovno", "avantura"],
+    "travelMonth": 8
+}
+Adrenalinska avantura po krasu
+
+{
+    "numberOfDays": 3,
+    "budget": "MEDIUM",
+    "transport": "CAR",
+    "fitnessLevel": "MEDIUM",
+    "interests": ["vino", "istorija", "dvorac", "stara trta"],
+    "travelMonth": 9
+}
+Lagana tura istočnog nasleđa i vina
+

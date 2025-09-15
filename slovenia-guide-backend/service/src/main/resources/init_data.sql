@@ -78,7 +78,7 @@ INSERT INTO location_tags (location_id, tag_id) SELECT l.id, t.id FROM location 
 INSERT INTO location_tags (location_id, tag_id) SELECT l.id, t.id FROM location l, tag t WHERE l.name = 'Celje' AND t.name IN ('grad', 'dvorac', 'istorija', 'srednji vek', 'grofovi celjski', 'romantika');
 INSERT INTO location_tags (location_id, tag_id) SELECT l.id, t.id FROM location l, tag t WHERE l.name = 'Logarska dolina' AND t.name IN ('priroda', 'dolina', 'planinarenje', 'mir', 'vodopad', 'biciklizam', 'fotografija', 'pejzažni park', 'eko turizam');
 INSERT INTO location_tags (location_id, tag_id) SELECT l.id, t.id FROM location l, tag t WHERE l.name = 'Dolina Soče' AND t.name IN ('priroda', 'reka', 'avantura', 'adrenalin', 'kajak', 'rafting', 'planinarenje', 'istorija WW1', 'vodopad', 'biciklizam', 'paraglajding');
-INSERT INTO location_tags (location_id, tag_id) SELECT l.id, t.id FROM location l, tag t WHERE l.name = 'Kobariški muzej' AND t.name IN ('muzej', 'istorija WW1', 'edukacija', 'kultura', 'rat');
+INSERT INTO location_tags (location_id, tag_id) SELECT l.id, t.id FROM location l, tag t WHERE l.name = 'Kobariški muzej' AND t.name IN ('muzej', 'istorija WW1', 'edukacija', 'kultura', 'rat', 'istorija');
 INSERT INTO location_tags (location_id, tag_id) SELECT l.id, t.id FROM location l, tag t WHERE l.name = 'Tolminska korita' AND t.name IN ('priroda', 'kanjon', 'nacionalni park', 'šetnja', 'most', 'reke', 'geologija');
 
 

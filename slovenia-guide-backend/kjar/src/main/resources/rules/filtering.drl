@@ -9,25 +9,17 @@ import com.ftn.sbnz.model.enums.Budget;
 import com.ftn.sbnz.model.events.RoadStatusEvent;
 import com.ftn.sbnz.model.enums.RoadStatus;
 
-// Query koji jednostavno pronalazi sve preostale Location objekte u radnoj memoriji.
 query "getLocations"
     $location: Location()
 end
 
-// Pravilo se aktivira samo ako korisnik putuje javnim prevozom
-// i pronalazi sve lokacije koje su dostupne isključivo automobilom.
 rule "Filter out locations not accessible by public transport"
     agenda-group "scoring"
     salience 20
     when
-        // Uslov 1: Postoji činjenica (fact) o preferencama putovanja gde je transport JAVNI PREVOZ.
         TravelPreferences(transport == Transport.PUBLIC_TRANSPORT)
-
-        // Uslov 2: Postoji činjenica o lokaciji ($location) koja je dostupna SAMO AUTOMOBILOM.
         $location: Location(publicTransportAccessibility == PublicTransportAccessibility.CAR_ONLY)
     then
-        // Akcija: Ako su oba uslova ispunjena, obriši tu lokaciju iz radne memorije.
-        // Drools je time više neće uzimati u obzir za dalja pravila.
         delete($location);
         System.out.println("Filtrirana lokacija zbog prevoza: " + $location.getName());
 end
@@ -36,11 +28,7 @@ rule "Filter out locations based on fitness level"
     agenda-group "scoring"
     salience 20
     when
-        // Uslov 1: Imamo preference korisnika sa određenim nivoom spreme
         $prefs: TravelPreferences($fitness: fitnessLevel)
-
-        // Uslov 2: Postoji lokacija koja zahteva VIŠU spremu od korisnikove
-        // Koristimo 'eval' za poređenje. LOW < MEDIUM < HIGH
         $location: Location($reqFitness: requiredFitness, eval($reqFitness.ordinal() > $fitness.ordinal()))
     then
         delete($location);
@@ -52,10 +40,7 @@ rule "Filter out seasonally closed locations"
     agenda-group "scoring"
     salience 20
     when
-        // Uslov 1: Imamo preference korisnika sa mesecom putovanja
         $prefs: TravelPreferences($month: travelMonth)
-
-        // Uslov 2: Postoji lokacija koja je sezonska i mesec putovanja NIJE u opsegu [openingMonth, closingMonth]
         $location: Location(seasonal == true, openingMonth > $month || closingMonth < $month)
     then
         delete($location);
@@ -64,13 +49,10 @@ end
 
 rule "Filter expensive locations for LOW budget"
     agenda-group "scoring"
-    salience 20 // Isti prioritet kao i ostala pravila za filtriranje
+    salience 20
     when
-        // Uslov 1: Korisnikov budžet je NIZAK
         TravelPreferences(budget == Budget.LOW)
-        // Uslov 2: Učitaj parametar za granicu niskog budžeta
         RuleParameter(paramKey == "BUDGET_LIMIT_LOW", $limit: paramValue)
-        // Uslov 3: Pronađi lokaciju čija je cena veća od te granice
         $location: Location(ticketPrice > $limit)
     then
         delete($location);
@@ -81,11 +63,8 @@ rule "Filter expensive locations for MEDIUM budget"
     agenda-group "scoring"
     salience 20
     when
-        // Uslov 1: Korisnikov budžet je SREDNJI
         TravelPreferences(budget == Budget.MEDIUM)
-        // Uslov 2: Učitaj parametar za granicu srednjeg budžeta
         RuleParameter(paramKey == "BUDGET_LIMIT_MEDIUM", $limit: paramValue)
-        // Uslov 3: Pronađi lokaciju čija je cena veća od te granice
         $location: Location(ticketPrice > $limit)
     then
         delete($location);
@@ -94,7 +73,7 @@ end
 
 rule "Filter locations if access road is closed"
     agenda-group "scoring"
-    salience 30 // Visok prioritet, izvršava se pre bodovanja
+    salience 30
     when
         RoadStatusEvent(roadName == "Vršič", status == RoadStatus.CLOSED)
         $location: Location(name == "Triglavski narodni park" || name == "Kranjska Gora")

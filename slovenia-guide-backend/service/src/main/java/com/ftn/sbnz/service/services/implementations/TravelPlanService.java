@@ -1,10 +1,8 @@
 package com.ftn.sbnz.service.services.implementations;
 
-import com.ftn.sbnz.model.dtos.Alert;
-import com.ftn.sbnz.model.dtos.ItineraryItem;
-import com.ftn.sbnz.model.dtos.Recommendation;
-import com.ftn.sbnz.model.dtos.TravelPreferences;
+import com.ftn.sbnz.model.dtos.*;
 import com.ftn.sbnz.model.dtos.travelPlan.TravelPlanResponse;
+import com.ftn.sbnz.model.facts.TripClassification;
 import com.ftn.sbnz.model.models.Location;
 import com.ftn.sbnz.service.repositories.ILocationRepository;
 import com.ftn.sbnz.service.repositories.IRouteRepository;
@@ -90,11 +88,26 @@ public class TravelPlanService implements ITravelPlanService {
         session.setGlobal("uniqueAlerts", uniqueAlerts);
 
         session.fireAllRules(); // Izvršavamo SAMO pravila iz "alerts" grupe
+
+        // === FAZA 3: Backward Chaining Klasifikacija ===
+        String tripType = null; // Podrazumevana vrednost
+
+        // Fokusiramo se na novu agenda-grupu
+        session.getAgenda().getAgendaGroup("classification").setFocus();
+        session.fireAllRules();
+
+        // Pozivamo query da vidimo da li je neki zaključak donet
+        QueryResults classificationResults = session.getQueryResults("getTripClassification");
+        if (classificationResults.size() > 0) {
+            TripClassification classification = (TripClassification) classificationResults.iterator().next().get("$classification");
+            tripType = classification.getType();
+        }
+
         session.dispose(); // Uništi sesiju tek na kraju
 
         itinerary.sort(Comparator.comparing(ItineraryItem::getDay));
 
-        TravelPlanResponse response = new TravelPlanResponse(UUID.randomUUID(), itinerary, alerts);
+        TravelPlanResponse response = new TravelPlanResponse(UUID.randomUUID(), itinerary, alerts, tripType);
 
         // DODATO: Ubacujemo finalni plan u CEP sesiju da ga ona "nadgleda"
         cepSession.insert(response);

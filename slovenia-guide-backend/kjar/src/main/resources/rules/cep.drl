@@ -9,7 +9,7 @@ import java.util.UUID;
 
 declare RoadStatusEvent
     @role(event)
-    @timestamp(timestamp) // Kažemo Drools-u koje polje je vremenska oznaka
+    @timestamp(timestamp)
 end
 
 query "getAlertsForPlan"(UUID pId)
@@ -26,7 +26,6 @@ rule "React to Vrsic Pass Closure on existing plans"
         $plan: TravelPlanResponse($itinerary: itinerary, $planId: planId)
         exists ItineraryItem(location.name == "Triglavski narodni park" || location.name == "Kranjska Gora") from $itinerary
     then
-        // Akcija: Kreiraj i ubaci novi Alert fact u sesiju
         String message = "Kritično upozorenje: Putni prelaz Vršič je zatvoren, vaš plan za posetu Gorenjskoj je ugrožen!";
         insert(new Alert(message, $planId));
         System.out.println("====== Ubačeno kritično upozorenje (CEP) za plan " + $planId + " ======");
