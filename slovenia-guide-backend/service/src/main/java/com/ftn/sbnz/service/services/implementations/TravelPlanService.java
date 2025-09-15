@@ -1,7 +1,10 @@
 package com.ftn.sbnz.service.services.implementations;
 
-import com.ftn.sbnz.model.dtos.*;
+import com.ftn.sbnz.model.dtos.Alert;
+import com.ftn.sbnz.model.dtos.ItineraryItem;
+import com.ftn.sbnz.model.dtos.Recommendation;
 import com.ftn.sbnz.model.dtos.travelPlan.TravelPlanResponse;
+import com.ftn.sbnz.model.dtos.TravelPreferences;
 import com.ftn.sbnz.model.facts.TripClassification;
 import com.ftn.sbnz.model.models.Location;
 import com.ftn.sbnz.service.repositories.ILocationRepository;
@@ -16,10 +19,7 @@ import org.kie.api.runtime.rule.QueryResultsRow;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -28,91 +28,115 @@ public class TravelPlanService implements ITravelPlanService {
 
     @Qualifier("cepSession")
     private final KieSession cepSession;
-
     private final KieContainer kieContainer;
     private final ILocationRepository locationRepository;
     private final IRouteRepository routeRepository;
     private final IRuleParameterRepository ruleParameterRepository;
 
+    private record PlanningResult(List<ItineraryItem> itinerary, List<Alert> alerts, String tripType) {}
+
+    /**
+     * Glavna metoda koja orkestrira ceo proces generisanja plana.
+     */
     @Override
     public TravelPlanResponse generatePlan(TravelPreferences preferences) {
-        // === FAZA 1: Filtriranje i Bodovanje (ostaje isto) ===
-        KieSession scoringSession = kieContainer.newKieSession();
-        scoringSession.getAgenda().getAgendaGroup("scoring").setFocus();
+        List<Recommendation> recommendations = executeScoringPhase(preferences);
 
-        QueryResults results = cepSession.getQueryResults("getActiveRoadStatusEvents");
-        System.out.println("Pronađeno " + results.size() + " aktivnih CEP događaja.");
-        for (QueryResultsRow row : results) {
-            // I svaki pronađeni događaj ubacujemo u našu novu sesiju za planiranje
-            scoringSession.insert(row.get("$event"));
-        }
+        List<Location> topLocations = selectTopLocations(recommendations, preferences.getNumberOfDays());
 
-        scoringSession.insert(preferences);
-        locationRepository.findAll().forEach(scoringSession::insert);
-        ruleParameterRepository.findAll().forEach(scoringSession::insert);
-        scoringSession.fireAllRules();
+        PlanningResult result = executePlanningAndClassificationPhase(preferences, topLocations);
 
-        List<Recommendation> recommendations = new ArrayList<>();
-        QueryResults scoringResults = scoringSession.getQueryResults("getRecommendations");
-        for (QueryResultsRow row : scoringResults) {
-            recommendations.add((Recommendation) row.get("$rec"));
-        }
-        scoringSession.dispose();
+        result.itinerary().sort(Comparator.comparing(ItineraryItem::getDay));
+        TravelPlanResponse response = new TravelPlanResponse(UUID.randomUUID(), result.itinerary(), result.alerts(), result.tripType());
 
-        List<Location> topLocations = recommendations.stream()
-                .sorted(Comparator.comparing(Recommendation::getScore).reversed())
-                .limit(preferences.getNumberOfDays() * 2)
-                .map(Recommendation::getLocation)
-                .collect(Collectors.toList());
-
-        // === FAZA 2: Sklapanje Plana i Upozorenja ===
-        KieSession session = kieContainer.newKieSession(); // Sada imamo samo jednu sesiju za fazu 2
-
-        // --- Pod-faza 2a: Sklapanje Plana ---
-        session.getAgenda().getAgendaGroup("itinerary").setFocus();
-        session.insert(preferences);
-        topLocations.forEach(session::insert);
-        routeRepository.findAll().forEach(session::insert);
-        List<ItineraryItem> itinerary = new ArrayList<>();
-        session.setGlobal("itinerary", itinerary);
-        session.fireAllRules(); // Izvršavamo SAMO pravila iz "itinerary" grupe
-
-        // --- Pod-faza 2b: Generisanje Upozorenja ---
-        // Sada kada je 'itinerary' lista popunjena, ubacujemo njene stavke kao nove činjenice
-        itinerary.forEach(session::insert);
-
-        session.getAgenda().getAgendaGroup("alerts").setFocus(); // Sada se fokusiramo na "alerts" grupu
-        List<Alert> alerts = new ArrayList<>();
-        session.setGlobal("alerts", alerts);
-        java.util.Set<String> uniqueAlerts = new java.util.HashSet<>();
-        session.setGlobal("uniqueAlerts", uniqueAlerts);
-
-        session.fireAllRules(); // Izvršavamo SAMO pravila iz "alerts" grupe
-
-        // === FAZA 3: Backward Chaining Klasifikacija ===
-        String tripType = null; // Podrazumevana vrednost
-
-        // Fokusiramo se na novu agenda-grupu
-        session.getAgenda().getAgendaGroup("classification").setFocus();
-        session.fireAllRules();
-
-        // Pozivamo query da vidimo da li je neki zaključak donet
-        QueryResults classificationResults = session.getQueryResults("getTripClassification");
-        if (classificationResults.size() > 0) {
-            TripClassification classification = (TripClassification) classificationResults.iterator().next().get("$classification");
-            tripType = classification.getType();
-        }
-
-        session.dispose(); // Uništi sesiju tek na kraju
-
-        itinerary.sort(Comparator.comparing(ItineraryItem::getDay));
-
-        TravelPlanResponse response = new TravelPlanResponse(UUID.randomUUID(), itinerary, alerts, tripType);
-
-        // DODATO: Ubacujemo finalni plan u CEP sesiju da ga ona "nadgleda"
         cepSession.insert(response);
         cepSession.fireAllRules();
 
         return response;
+    }
+
+    /**
+     * Kreira sesiju, ubacuje činjenice, pokreće "scoring" pravila i vraća listu preporuka.
+     */
+    private List<Recommendation> executeScoringPhase(TravelPreferences preferences) {
+        KieSession scoringSession = kieContainer.newKieSession();
+        try {
+            scoringSession.getAgenda().getAgendaGroup("scoring").setFocus();
+
+            // Provera aktivnih CEP događaja
+            QueryResults cepResults = cepSession.getQueryResults("getActiveRoadStatusEvents");
+            for (QueryResultsRow row : cepResults) {
+                scoringSession.insert(row.get("$event"));
+            }
+
+            // Ubacivanje činjenica
+            scoringSession.insert(preferences);
+            locationRepository.findAll().forEach(scoringSession::insert);
+            ruleParameterRepository.findAll().forEach(scoringSession::insert);
+
+            scoringSession.fireAllRules();
+
+            // Prikupljanje rezultata
+            List<Recommendation> recommendations = new ArrayList<>();
+            QueryResults scoringResults = scoringSession.getQueryResults("getRecommendations");
+            for (QueryResultsRow row : scoringResults) {
+                recommendations.add((Recommendation) row.get("$rec"));
+            }
+            return recommendations;
+        } finally {
+            scoringSession.dispose();
+        }
+    }
+
+    /**
+     * Pomoćna metoda koja sortira preporuke i odabira najboljih N lokacija.
+     */
+    private List<Location> selectTopLocations(List<Recommendation> recommendations, int numberOfDays) {
+        return recommendations.stream()
+                .sorted(Comparator.comparing(Recommendation::getScore).reversed())
+                .limit(numberOfDays * 2L)
+                .map(Recommendation::getLocation)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Kreira sesiju, pokreće pravila za sklapanje plana, upozorenja i klasifikaciju.
+     * Vraća rezultate upakovane u PlanningResult objekat.
+     */
+    private PlanningResult executePlanningAndClassificationPhase(TravelPreferences preferences, List<Location> topLocations) {
+        KieSession planningSession = kieContainer.newKieSession();
+        try {
+            // Sklapanje Plana
+            List<ItineraryItem> itinerary = new ArrayList<>();
+            planningSession.setGlobal("itinerary", itinerary);
+            planningSession.getAgenda().getAgendaGroup("itinerary").setFocus();
+            planningSession.insert(preferences);
+            topLocations.forEach(planningSession::insert);
+            routeRepository.findAll().forEach(planningSession::insert);
+            planningSession.fireAllRules();
+
+            // Generisanje Upozorenja
+            itinerary.forEach(planningSession::insert);
+            List<Alert> alerts = new ArrayList<>();
+            planningSession.setGlobal("alerts", alerts);
+            Set<String> uniqueAlerts = new HashSet<>();
+            planningSession.setGlobal("uniqueAlerts", uniqueAlerts);
+            planningSession.getAgenda().getAgendaGroup("alerts").setFocus();
+            planningSession.fireAllRules();
+
+            // Finalna Klasifikacija
+            String tripType = null;
+            planningSession.getAgenda().getAgendaGroup("classification").setFocus();
+            planningSession.fireAllRules();
+            QueryResults classificationResults = planningSession.getQueryResults("getTripClassification");
+            if (classificationResults.size() > 0) {
+                TripClassification classification = (TripClassification) classificationResults.iterator().next().get("$classification");
+                tripType = classification.getType();
+            }
+
+            return new PlanningResult(itinerary, alerts, tripType);
+        } finally {
+            planningSession.dispose();
+        }
     }
 }
