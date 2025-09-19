@@ -42,7 +42,6 @@
 Maribor, Ptuj i Celje
 Dolina Soče i Kobariški muzej
 
-
 ----------- CEP ------------
 
 za testiranje:
@@ -65,7 +64,7 @@ Za aktiviranje dogadjaja salje admin
 Ukoliko korisnik nakon ovoga ponovo posalje upit za generisanje plana, nece se uzimati u obzir triglavski park zbog vrsica
 
 
------------ BACKWARD CHAINING -----------
+----------- BACKWARD CHAINING prvi -----------
 {
     "numberOfDays": 3,
     "budget": "HIGH",
@@ -96,3 +95,7 @@ Adrenalinska avantura po krasu
 }
 Lagana tura istočnog nasleđa i vina
 
+----------- BACKWARD CHAINING drugi rekurzivni -----------
+ljubljana id = 2b0f8756-5a05-443a-b730-c0ff4086dd6a
+Blejsko jezero id = e68eba65-fec0-4ce9-9099-30dd087311c5
+Maribor id = f03330b9-86ef-4ddf-a2ac-c46524f88481

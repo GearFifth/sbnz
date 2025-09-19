@@ -30,8 +30,6 @@ rule "Reward locations based on interests"
 end
 
 
-// NIVO 2: Fino podešavanje bodova na osnovu specifičnih pravila
-
 rule "Boost Bled for romance interest"
     agenda-group "scoring"
     no-loop true

@@ -22,7 +22,6 @@ end
 declare PlanningFinished
 end
 
-// --- Pravila za inicijalizaciiju ---
 rule "Initialize Day Planner and Daily Plans"
     agenda-group "itinerary"
     salience 100
@@ -36,7 +35,6 @@ rule "Initialize Day Planner and Daily Plans"
         }
 end
 
-// --- Glavna pravila za sklapanje plana ---
 rule "Assign top-rated location to Day 1"
     agenda-group "itinerary"
     salience 50
@@ -89,8 +87,6 @@ rule "Assign next best location to a new day"
         delete($location);
         System.out.println("Dan " + $plan.getDay() + ": Početak sa lokacijom " + $location.getName());
 end
-
-// --- Finalna pravila ---
 
 rule "Signal that planning is finished"
     agenda-group "itinerary"

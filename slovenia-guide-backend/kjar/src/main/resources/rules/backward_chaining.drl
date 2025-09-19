@@ -13,7 +13,6 @@ query "getTripClassification"
     $classification: TripClassification()
 end
 
-// --- Finalna pravila ---
 rule "Conclude: High-Intensity Alpine Expedition"
     agenda-group "classification"
     when
