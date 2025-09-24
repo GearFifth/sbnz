@@ -5,48 +5,34 @@ import com.ftn.sbnz.model.facts.DayTripCandidate;
 import com.ftn.sbnz.model.models.Location;
 import com.ftn.sbnz.model.models.Route;
 
-// GLAVNI CILJ: Pronađi sve kandidate za dnevni izlet
 query "getTripCandidates"
     $candidate: DayTripCandidate()
 end
 
-// PRAVILO 1: Pronađi direktno dostižne lokacije (osnovni slučaj rekurzije)
 rule "Find Direct Day Trip Candidates"
     when
-        // Ulazni parametri
         $req: DayTripRequest($baseId: baseLocationId, $limit: maxTravelTime)
-        // Pronađi baznu lokaciju
         $base: Location(id == $baseId)
-        // Pronađi destinaciju koja nije ista kao bazna
         $dest: Location(id != $baseId)
-        // I rutu između njih koja je unutar limita
         Route(
             (locationA == $base && locationB == $dest) || (locationA == $dest && locationB == $base),
             $time: travelTimeMinutes < $limit
         )
     then
-        // Zaključak: Destinacija je kandidat. Ubaci novu činjenicu u sesiju.
         insert(new DayTripCandidate($dest, $base, $time));
 end
 
-// PRAVILO 2: Pronađi indirektno dostižne lokacije (rekurzivni korak)
 rule "Find Indirect Day Trip Candidates"
     when
         $req: DayTripRequest($limit: maxTravelTime)
-        // Pronađi kandidata kojeg smo već dokazali u prethodnom koraku
         $candidate: DayTripCandidate($base: base, $intermediate: location, $baseTime: travelTimeFromBase)
-        // Pronađi novu destinaciju
         $dest: Location(id != $base.id, id != $intermediate.id)
-        // Koja još uvek nije dokazana kao kandidat
         not DayTripCandidate(location == $dest)
-        // A postoji ruta od prethodnog kandidata do nje
         Route(
             (locationA == $intermediate && locationB == $dest) || (locationA == $dest && locationB == $intermediate),
             $time: travelTimeMinutes
         )
-        // I ukupno vreme od BAZE do NOVE DESTINACIJE je i dalje unutar limita
         eval($baseTime + $time < $limit)
     then
-        // Zaključak: I ova nova destinacija je kandidat. Ubaci novu činjenicu.
         insert(new DayTripCandidate($dest, $base, $baseTime + $time));
 end

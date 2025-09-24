@@ -40,13 +40,11 @@ public class TravelPlanController {
     @PreAuthorize("hasAuthority('USER')")
     public ResponseEntity<List<Alert>> getCriticalAlerts(@PathVariable UUID planId) {
         List<Alert> alerts = new ArrayList<>();
-        // Pitamo sesiju za upozorenja koja odgovaraju datom planId
         QueryResults results = cepSession.getQueryResults("getAlertsForPlan", planId);
 
         for (QueryResultsRow row : results) {
             Alert alert = (Alert) row.get("$alert");
             alerts.add(alert);
-            // Odmah brišemo činjenicu iz sesije da je korisnik ne bi dobio ponovo
             cepSession.delete(row.getFactHandle("$alert"));
         }
 

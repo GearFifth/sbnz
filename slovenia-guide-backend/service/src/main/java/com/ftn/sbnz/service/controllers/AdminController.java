@@ -24,7 +24,6 @@ public class AdminController {
     @PostMapping("/road-status")
     @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<Void> postRoadStatus(@RequestBody RoadStatusEvent event) {
-        // Direktno ubacujemo događaj u aktivnu CEP sesiju
         event.setTimestamp(new Date());
         cepSession.insert(event);
         cepSession.fireAllRules();
