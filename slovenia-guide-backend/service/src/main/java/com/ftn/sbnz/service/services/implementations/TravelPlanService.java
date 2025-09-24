@@ -5,20 +5,26 @@ import com.ftn.sbnz.model.dtos.ItineraryItem;
 import com.ftn.sbnz.model.dtos.Recommendation;
 import com.ftn.sbnz.model.dtos.travelPlan.TravelPlanResponse;
 import com.ftn.sbnz.model.dtos.TravelPreferences;
+import com.ftn.sbnz.model.enums.Budget;
 import com.ftn.sbnz.model.facts.TripClassification;
 import com.ftn.sbnz.model.models.Location;
+import com.ftn.sbnz.model.template.BudgetRuleTemplateModel;
 import com.ftn.sbnz.service.repositories.ILocationRepository;
 import com.ftn.sbnz.service.repositories.IRouteRepository;
 import com.ftn.sbnz.service.repositories.IRuleParameterRepository;
 import com.ftn.sbnz.service.services.ITravelPlanService;
 import lombok.RequiredArgsConstructor;
+import org.drools.template.ObjectDataCompiler;
+import org.kie.api.io.ResourceType;
 import org.kie.api.runtime.KieContainer;
 import org.kie.api.runtime.KieSession;
 import org.kie.api.runtime.rule.QueryResults;
 import org.kie.api.runtime.rule.QueryResultsRow;
+import org.kie.internal.utils.KieHelper;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
+import java.io.InputStream;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -59,6 +65,8 @@ public class TravelPlanService implements ITravelPlanService {
      * Kreira sesiju, ubacuje činjenice, pokreće "scoring" pravila i vraća listu preporuka.
      */
     private List<Recommendation> executeScoringPhase(TravelPreferences preferences) {
+        List<Location> budgetFriendlyLocations = filterLocationsByBudget(preferences);
+
         KieSession scoringSession = kieContainer.newKieSession();
         try {
             scoringSession.getAgenda().getAgendaGroup("scoring").setFocus();
@@ -71,7 +79,7 @@ public class TravelPlanService implements ITravelPlanService {
 
             // Ubacivanje činjenica
             scoringSession.insert(preferences);
-            locationRepository.findAll().forEach(scoringSession::insert);
+            budgetFriendlyLocations.forEach(scoringSession::insert);
             ruleParameterRepository.findAll().forEach(scoringSession::insert);
 
             scoringSession.fireAllRules();
@@ -137,6 +145,46 @@ public class TravelPlanService implements ITravelPlanService {
             return new PlanningResult(itinerary, alerts, tripType);
         } finally {
             planningSession.dispose();
+        }
+    }
+
+    /**
+     * Generise pravila iz template file-a i filtrira lokacije po budzetu
+     */
+    private List<Location> filterLocationsByBudget(TravelPreferences preferences) {
+        InputStream templateStream = TravelPlanService.class.getResourceAsStream("/templates/budget-classification-template.drt");
+        if (templateStream == null) {
+            throw new IllegalArgumentException("Template file not found!");
+        }
+
+        List<BudgetRuleTemplateModel> templateData = new ArrayList<>();
+
+        double lowLimit = ruleParameterRepository.findById("BUDGET_LIMIT_LOW").orElseThrow().getParamValue();
+        templateData.add(new BudgetRuleTemplateModel(Budget.LOW, lowLimit));
+
+        double mediumLimit = ruleParameterRepository.findById("BUDGET_LIMIT_MEDIUM").orElseThrow().getParamValue();
+        templateData.add(new BudgetRuleTemplateModel(Budget.MEDIUM, mediumLimit));
+
+        ObjectDataCompiler compiler = new ObjectDataCompiler();
+        String generatedDrl = compiler.compile(templateData, templateStream);
+
+        KieHelper kieHelper = new KieHelper();
+        kieHelper.addContent(generatedDrl, ResourceType.DRL);
+        KieSession tempSession = kieHelper.build().newKieSession();
+
+        try {
+            tempSession.getAgenda().getAgendaGroup("scoring").setFocus();
+
+            tempSession.insert(preferences);
+            locationRepository.findAll().forEach(tempSession::insert);
+            tempSession.fireAllRules();
+
+            return tempSession.getObjects(o -> o instanceof Location)
+                    .stream()
+                    .map(o -> (Location) o)
+                    .collect(Collectors.toList());
+        } finally {
+            tempSession.dispose();
         }
     }
 }
