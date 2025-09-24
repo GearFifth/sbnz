@@ -47,29 +47,29 @@ rule "Filter out seasonally closed locations"
         System.out.println("Filtrirana lokacija zbog sezone: " + $location.getName());
 end
 
-rule "Filter expensive locations for LOW budget"
-    agenda-group "scoring"
-    salience 20
-    when
-        TravelPreferences(budget == Budget.LOW)
-        RuleParameter(paramKey == "BUDGET_LIMIT_LOW", $limit: paramValue)
-        $location: Location(ticketPrice > $limit)
-    then
-        delete($location);
-        System.out.println("Filtrirana lokacija zbog niskog budžeta: " + $location.getName());
-end
-
-rule "Filter expensive locations for MEDIUM budget"
-    agenda-group "scoring"
-    salience 20
-    when
-        TravelPreferences(budget == Budget.MEDIUM)
-        RuleParameter(paramKey == "BUDGET_LIMIT_MEDIUM", $limit: paramValue)
-        $location: Location(ticketPrice > $limit)
-    then
-        delete($location);
-        System.out.println("Filtrirana lokacija zbog srednjeg budžeta: " + $location.getName());
-end
+//rule "Filter expensive locations for LOW budget"
+//    agenda-group "scoring"
+//    salience 20
+//    when
+//        TravelPreferences(budget == Budget.LOW)
+//        RuleParameter(paramKey == "BUDGET_LIMIT_LOW", $limit: paramValue)
+//        $location: Location(ticketPrice > $limit)
+//    then
+//        delete($location);
+//        System.out.println("Filtrirana lokacija zbog niskog budžeta: " + $location.getName());
+//end
+//
+//rule "Filter expensive locations for MEDIUM budget"
+//    agenda-group "scoring"
+//    salience 20
+//    when
+//        TravelPreferences(budget == Budget.MEDIUM)
+//        RuleParameter(paramKey == "BUDGET_LIMIT_MEDIUM", $limit: paramValue)
+//        $location: Location(ticketPrice > $limit)
+//    then
+//        delete($location);
+//        System.out.println("Filtrirana lokacija zbog srednjeg budžeta: " + $location.getName());
+//end
 
 rule "Filter locations if access road is closed"
     agenda-group "scoring"

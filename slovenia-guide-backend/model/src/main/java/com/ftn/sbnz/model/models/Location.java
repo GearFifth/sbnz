@@ -3,16 +3,17 @@ package com.ftn.sbnz.model.models;
 import com.ftn.sbnz.model.enums.FitnessLevel;
 import com.ftn.sbnz.model.enums.PublicTransportAccessibility;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.util.List;
 import java.util.UUID;
 
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@EqualsAndHashCode(of = "id")
+@ToString(exclude = "tags")
 @Entity
 public class Location {
     @Id
