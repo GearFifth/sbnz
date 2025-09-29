@@ -54,8 +54,6 @@ public class AuthService implements IAuthService {
             UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
 
             LoginResponse loginResponse = new LoginResponse();
-            loginResponse.setId(userPrincipal.getId());
-            loginResponse.setEmail(userPrincipal.getUsername());
             loginResponse.setToken(jwtUtils.generateAccessToken(userPrincipal));
 
             return loginResponse;

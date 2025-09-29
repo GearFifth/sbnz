@@ -1,0 +1,177 @@
+<div class="p-6">
+  <h2 class="dark:text-white text-2xl font-bold">
+    {{ isEditMode ? "Edit" : "Add New" }} Location
+  </h2>
+
+  <div class="py-4">
+    <form [formGroup]="locationForm" class="grid grid-cols-2 gap-x-6 gap-y-4">
+      <div class="form-field col-span-2">
+        <label class="form-label">Location Name</label>
+        <input class="form-input" formControlName="name" required />
+      </div>
+
+      <div class="form-field">
+        <label class="form-label">Type</label>
+        <input
+          class="form-input"
+          formControlName="type"
+          placeholder="e.g., Lake, Cave, Castle"
+          required
+        />
+      </div>
+
+      <div class="form-field">
+        <label class="form-label">Region</label>
+        <input
+          class="form-input"
+          formControlName="region"
+          placeholder="e.g., Gorenjska"
+          required
+        />
+      </div>
+
+      <div class="form-field">
+        <label class="form-label">Ticket Price (€)</label>
+        <input
+          class="form-input"
+          type="number"
+          formControlName="ticketPrice"
+          required
+        />
+      </div>
+
+      <div class="form-field">
+        <label class="form-label">Visit Time (minutes)</label>
+        <input
+          class="form-input"
+          type="number"
+          formControlName="visitTimeMinutes"
+          required
+        />
+      </div>
+
+      <div class="form-field">
+        <label class="form-label">Required Fitness</label>
+        <select class="form-input" formControlName="requiredFitness">
+          <option value="LOW">Low</option>
+          <option value="MEDIUM">Medium</option>
+          <option value="HIGH">High</option>
+        </select>
+      </div>
+
+      <div class="form-field">
+        <label class="form-label">Public Transport</label>
+        <select
+          class="form-input"
+          formControlName="publicTransportAccessibility"
+        >
+          <option value="EXCELLENT">Excellent</option>
+          <option value="GOOD">Good</option>
+          <option value="COMPLICATED">Complicated</option>
+          <option value="CAR_ONLY">Car Only</option>
+        </select>
+      </div>
+
+      <div class="form-field col-span-2">
+        <label class="form-label">Required Equipment</label>
+        <input
+          class="form-input"
+          formControlName="requiredEquipment"
+          placeholder="e.g., Hiking Boots, Warm Jacket"
+        />
+      </div>
+
+      <div class="form-field col-span-2">
+        <label class="form-label">Description</label>
+        <textarea
+          class="form-input"
+          formControlName="description"
+          rows="3"
+        ></textarea>
+      </div>
+
+      <div class="form-field col-span-2">
+        <label class="form-label">Tags (press Enter to add)</label>
+        <div class="tag-container">
+          @for(tag of locationForm.get('tags')?.value; track tag) {
+          <span class="tag-bubble">
+            {{ tag }}
+            <button
+              type="button"
+              class="tag-remove-btn"
+              (click)="removeTag(tag)"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-4 w-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M6 18L18 6M6 6l12 12"
+                />
+              </svg>
+            </button>
+          </span>
+          }
+          <input
+            class="tag-input"
+            placeholder="Add a tag..."
+            (keydown.enter)="addTag($event)"
+          />
+        </div>
+      </div>
+
+      <div class="col-span-2 flex items-center gap-2">
+        <input
+          type="checkbox"
+          id="seasonal-toggle"
+          formControlName="seasonal"
+          class="h-4 w-4 rounded border-gray-300 text-teal-600 focus:ring-teal-500"
+        />
+        <label for="seasonal-toggle" class="form-label"
+          >Location is Seasonal</label
+        >
+      </div>
+
+      @if(locationForm.get('seasonal')?.value) {
+      <div class="form-field">
+        <label class="form-label">Opening Month</label>
+        <select class="form-input" formControlName="openingMonth">
+          @for(month of months; track month) {
+          <option [value]="month">{{ month }}</option>
+          }
+        </select>
+      </div>
+      <div class="form-field">
+        <label class="form-label">Closing Month</label>
+        <select class="form-input" formControlName="closingMonth">
+          @for(month of months; track month) {
+          <option [value]="month">{{ month }}</option>
+          }
+        </select>
+      </div>
+      }
+    </form>
+  </div>
+
+  <div
+    class="flex justify-end items-center gap-2 pt-4 border-t border-gray-200 dark:border-gray-700"
+  >
+    <button type="button" class="btn-secondary" (click)="onCancel()">
+      Cancel
+    </button>
+    <button
+      type="button"
+      class="btn-primary"
+      (click)="onSave()"
+      [disabled]="locationForm.invalid"
+    >
+      {{ isEditMode ? "Update" : "Save" }}
+    </button>
+  </div>
+</div>

@@ -1,5 +1,6 @@
 package com.ftn.sbnz.model.dtos.location;
 
+import com.ftn.sbnz.model.dtos.TagDto;
 import com.ftn.sbnz.model.enums.FitnessLevel;
 import com.ftn.sbnz.model.enums.PublicTransportAccessibility;
 import lombok.AllArgsConstructor;
@@ -21,7 +22,7 @@ public class CreateLocationRequest {
     private PublicTransportAccessibility publicTransportAccessibility;
     private String requiredEquipment;
     private String description;
-    private List<String> tags;
+    private List<TagDto> tags;
     private boolean seasonal;
     private int openingMonth;
     private int closingMonth;
