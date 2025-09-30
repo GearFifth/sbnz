@@ -12,4 +12,5 @@ import java.util.UUID;
 public class Alert {
     private String message;
     private UUID planId;
+    private UUID locationId;
 }

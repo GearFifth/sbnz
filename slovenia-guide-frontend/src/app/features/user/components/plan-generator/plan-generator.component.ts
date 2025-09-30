@@ -18,6 +18,7 @@ import { CommonModule } from '@angular/common';
 import { MaterialModule } from '../../../../shared/material.module';
 import { TravelPlanService } from '../../services/travel-plan.service';
 import {
+  Alert,
   ItineraryItem,
   TravelPlanResponse,
 } from '../../../../core/models/travel-plan.model';
@@ -40,8 +41,6 @@ export class PlanGeneratorComponent implements OnInit, OnDestroy {
   allInterests = signal<Tag[]>([]);
   interestInput = new FormControl('');
   isDropdownVisible = signal(false);
-
-  // NEW: A dedicated signal to hold the filter value from the input.
   private interestFilterSignal = signal<string>('');
 
   readonly months = [
@@ -61,7 +60,24 @@ export class PlanGeneratorComponent implements OnInit, OnDestroy {
 
   plan = signal<TravelPlanResponse | null>(null);
 
-  // UPDATED: This now depends on the new signal, which ensures it updates on every keystroke.
+  generalAlerts = computed(
+    () => this.plan()?.alerts.filter((a) => !a.locationId) || []
+  );
+
+  locationAlertsMap = computed(() => {
+    const alertsMap = new Map<string, Alert[]>();
+    const p = this.plan();
+    if (!p) return alertsMap;
+
+    p.alerts.forEach((alert) => {
+      if (alert.locationId) {
+        const existing = alertsMap.get(alert.locationId) || [];
+        alertsMap.set(alert.locationId, [...existing, alert]);
+      }
+    });
+    return alertsMap;
+  });
+
   filteredInterests = computed(() => {
     const filterValue = this.interestFilterSignal().toLowerCase();
     const selectedInterests = this.interestsFormArray.value as string[];
@@ -79,12 +95,10 @@ export class PlanGeneratorComponent implements OnInit, OnDestroy {
   planByDay = computed(() => {
     const p = this.plan();
     if (!p) return [];
-
     const grouped = p.itinerary.reduce((acc, item) => {
       (acc[item.day] = acc[item.day] || []).push(item);
       return acc;
     }, {} as { [key: number]: ItineraryItem[] });
-
     return Object.keys(grouped).map((day) => ({
       day: Number(day),
       items: grouped[Number(day)],
@@ -113,8 +127,6 @@ export class PlanGeneratorComponent implements OnInit, OnDestroy {
       this.allInterests.set(tags);
     });
 
-    // NEW: Subscribe to the input's value changes and update our filter signal.
-    // This is the bridge between reactive forms and signals.
     this.interestInput.valueChanges.subscribe((value) => {
       this.interestFilterSignal.set(value || '');
     });
@@ -147,9 +159,7 @@ export class PlanGeneratorComponent implements OnInit, OnDestroy {
   startOver(): void {
     this.plan.set(null);
     clearInterval(this.alertPollingInterval);
-
     this.interestsFormArray.clear();
-
     this.preferencesForm.reset({
       numberOfDays: 3,
       budget: 'MEDIUM',

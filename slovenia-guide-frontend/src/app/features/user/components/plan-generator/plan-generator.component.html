@@ -13,14 +13,14 @@
     <button class="btn-secondary" (click)="startOver()">Start Over</button>
   </div>
 
-  <!-- Alerts -->
-  @if(generatedPlan.alerts.length > 0) {
+  <!-- Prikaz samo OPŠTIH upozorenja na vrhu -->
+  @if(generalAlerts().length > 0) {
   <div
     class="mb-6 p-4 bg-yellow-100 dark:bg-yellow-900/50 border-l-4 border-yellow-500 text-yellow-800 dark:text-yellow-200 rounded-r-lg"
   >
     <h3 class="font-bold">Important Notes</h3>
     <ul class="list-disc list-inside mt-2 space-y-1">
-      @for(alert of generatedPlan.alerts; track $index) {
+      @for(alert of generalAlerts(); track $index) {
       <li>{{ alert.message }}</li>
       }
     </ul>
@@ -47,7 +47,6 @@
             {{ item.location.region }} - {{ item.location.type }}
           </p>
 
-          <!-- Display Tags as Bubbles -->
           <div class="mt-3 flex flex-wrap gap-2">
             @for(tag of item.location.tags; track tag.id) {
             <span
@@ -57,6 +56,18 @@
             </span>
             }
           </div>
+
+          <!-- Prikaz upozorenja specifičnih za ovu lokaciju -->
+          @if(locationAlertsMap().has(item.location.id)) {
+          <div
+            class="mt-3 p-3 bg-yellow-50 dark:bg-yellow-900/40 border-l-4 border-yellow-400 text-yellow-700 dark:text-yellow-200 rounded-r-md"
+          >
+            @for(alert of locationAlertsMap().get(item.location.id); track
+            $index) {
+            <p class="text-sm">{{ alert.message }}</p>
+            }
+          </div>
+          }
         </div>
         }
       </div>
@@ -74,41 +85,40 @@
   </h2>
   <form [formGroup]="preferencesForm" (ngSubmit)="generatePlan()">
     <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
-      <!-- Fields for days, month, budget, etc. -->
       <div class="form-field">
-        <label class="form-label">Number of Days</label
-        ><input
+        <label class="form-label">Number of Days</label>
+        <input
           class="form-input"
           type="number"
           formControlName="numberOfDays"
         />
       </div>
       <div class="form-field">
-        <label class="form-label">Month of Travel</label
-        ><select class="form-input" formControlName="travelMonth">
-          @for(month of months; track month.value){
+        <label class="form-label">Month of Travel</label>
+        <select class="form-input" formControlName="travelMonth">
+          @for(month of months; track month.value) {
           <option [value]="month.value">{{ month.name }}</option>
           }
         </select>
       </div>
       <div class="form-field">
-        <label class="form-label">Budget</label
-        ><select class="form-input" formControlName="budget">
+        <label class="form-label">Budget</label>
+        <select class="form-input" formControlName="budget">
           <option value="LOW">Low</option>
           <option value="MEDIUM">Medium</option>
           <option value="HIGH">High</option>
         </select>
       </div>
       <div class="form-field">
-        <label class="form-label">Mode of Transport</label
-        ><select class="form-input" formControlName="transport">
+        <label class="form-label">Mode of Transport</label>
+        <select class="form-input" formControlName="transport">
           <option value="CAR">Car</option>
           <option value="PUBLIC_TRANSPORT">Public Transport</option>
         </select>
       </div>
       <div class="form-field col-span-1 md:col-span-2">
-        <label class="form-label">Physical Fitness Level</label
-        ><select class="form-input" formControlName="fitnessLevel">
+        <label class="form-label">Physical Fitness Level</label>
+        <select class="form-input" formControlName="fitnessLevel">
           <option value="LOW">Low (Relaxed pace, minimal walking)</option>
           <option value="MEDIUM">
             Medium (Comfortable with walking/light hiking)
@@ -158,7 +168,6 @@
             />
           </div>
 
-          <!-- Dropdown with filtered interests -->
           @if(isDropdownVisible() && filteredInterests().length > 0) {
           <div
             class="absolute z-10 w-full mt-1 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-lg max-h-60 overflow-y-auto"

@@ -21,6 +21,7 @@ export interface ItineraryItem {
 export interface Alert {
   message: string;
   planId: string;
+  locationId?: string;
 }
 
 // The complete response from the backend
