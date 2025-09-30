@@ -1,0 +1,134 @@
+<div
+  class="bg-white/90 dark:bg-gray-800/95 backdrop-blur-sm shadow-2xl rounded-2xl p-8 w-full max-w-6xl mx-auto dark:text-white"
+>
+  <h2 class="text-3xl font-bold text-center mb-8">Day Trip Tools</h2>
+
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+    <!-- SECTION 1: FIND DAY TRIPS -->
+    <div class="p-6 border dark:border-gray-700 rounded-lg">
+      <h3 class="text-2xl font-semibold mb-4">Find Trip Suggestions</h3>
+      <form
+        [formGroup]="findTripsForm"
+        (ngSubmit)="onFindTrips()"
+        class="flex flex-col gap-4"
+      >
+        <div class="form-field">
+          <label class="form-label">Starting From</label>
+          <select class="form-input" formControlName="baseLocationId">
+            <option value="" disabled>Select a base location...</option>
+            @for(location of allLocations(); track location.id) {
+            <option [value]="location.id">{{ location.name }}</option>
+            }
+          </select>
+        </div>
+        <div class="form-field">
+          <label class="form-label"
+            >Max. Travel Time (one way, in minutes)</label
+          >
+          <input
+            class="form-input"
+            type="number"
+            formControlName="maxTravelTime"
+          />
+        </div>
+        <button
+          type="submit"
+          class="btn-primary mt-2"
+          [disabled]="findTripsForm.invalid"
+        >
+          Find Suggestions
+        </button>
+      </form>
+
+      <!-- Results for Find Trips -->
+      @if(suggestions(); as tripSuggestions) {
+      <div class="mt-6">
+        <h4 class="font-bold text-lg mb-2">Suggested Trips:</h4>
+        @if(tripSuggestions.length > 0) {
+        <ul class="space-y-2">
+          @for(suggestion of tripSuggestions; track suggestion.location.id) {
+          <li
+            class="p-3 bg-gray-50 dark:bg-gray-700/60 rounded-md flex justify-between items-center"
+          >
+            <span class="font-semibold text-teal-700 dark:text-teal-300">{{
+              suggestion.location.name
+            }}</span>
+            <span class="text-sm text-gray-500 dark:text-gray-400"
+              >{{ suggestion.travelTimeFromBase }} min</span
+            >
+          </li>
+          }
+        </ul>
+        } @else {
+        <p class="text-center text-gray-500 dark:text-gray-400 p-4">
+          No suggestions found within the specified travel time.
+        </p>
+        }
+      </div>
+      }
+    </div>
+
+    <!-- SECTION 2: VALIDATE TRIP -->
+    <div class="p-6 border dark:border-gray-700 rounded-lg">
+      <h3 class="text-2xl font-semibold mb-4">Validate Reachability</h3>
+      <form
+        [formGroup]="validateTripForm"
+        (ngSubmit)="onValidateTrip()"
+        class="flex flex-col gap-4"
+      >
+        <div class="form-field">
+          <label class="form-label">Starting From</label>
+          <select class="form-input" formControlName="baseLocationId">
+            <option value="" disabled>Select a base location...</option>
+            @for(location of allLocations(); track location.id) {
+            <option [value]="location.id">{{ location.name }}</option>
+            }
+          </select>
+        </div>
+        <div class="form-field">
+          <label class="form-label">Destination</label>
+          <select class="form-input" formControlName="destinationLocationId">
+            <option value="" disabled>Select a destination...</option>
+            @for(location of allLocations(); track location.id) {
+            <option [value]="location.id">{{ location.name }}</option>
+            }
+          </select>
+        </div>
+        <div class="form-field">
+          <label class="form-label"
+            >Available Travel Time (one way, in minutes)</label
+          >
+          <input
+            class="form-input"
+            type="number"
+            formControlName="maxTravelTime"
+          />
+        </div>
+        <button
+          type="submit"
+          class="btn-primary mt-2"
+          [disabled]="validateTripForm.invalid"
+        >
+          Validate
+        </button>
+      </form>
+
+      <!-- Results for Validate Trip -->
+      @if(validationResult(); as result) {
+      <div
+        class="mt-6 p-4 rounded-lg text-center font-semibold"
+        [class.bg-green-100]="result.reachable"
+        [class.dark:bg-green-900]="result.reachable"
+        [class.text-green-800]="result.reachable"
+        [class.dark:text-green-200]="result.reachable"
+        [class.bg-red-100]="!result.reachable"
+        [class.dark:bg-red-900]="!result.reachable"
+        [class.text-red-800]="!result.reachable"
+        [class.dark:text-red-200]="!result.reachable"
+      >
+        {{ result.message }}
+      </div>
+      }
+    </div>
+  </div>
+</div>

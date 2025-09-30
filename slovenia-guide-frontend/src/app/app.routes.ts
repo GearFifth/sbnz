@@ -8,6 +8,7 @@ import { RouteManagementComponent } from './features/admin/components/route-mana
 import { LoginComponent } from './features/auth/login/login.component';
 import { RegisterComponent } from './features/auth/register/register.component';
 import { MainLayoutComponent } from './layout/main-layout/main-layout.component';
+import { DayTripSuggesterComponent } from './features/user/components/day-trip-suggester/day-trip-suggester.component';
 
 export const routes: Routes = [
   { path: 'login', component: LoginComponent },
@@ -18,6 +19,7 @@ export const routes: Routes = [
     canActivate: [authGuard],
     children: [
       { path: 'home', component: PlanGeneratorComponent },
+      { path: 'day-trips', component: DayTripSuggesterComponent },
       {
         path: 'admin',
         canActivate: [adminGuard],
