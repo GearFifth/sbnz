@@ -1,0 +1,45 @@
+<div class="p-6">
+  <h2 class="dark:text-white text-2xl font-bold">
+    {{ isEditMode ? "Edit" : "Add New" }} Rule Parameter
+  </h2>
+
+  <div class="py-4">
+    <form [formGroup]="parameterForm" class="flex flex-col gap-4">
+      <div class="form-field">
+        <label class="form-label">Parameter Key</label>
+        <input
+          class="form-input"
+          formControlName="paramKey"
+          placeholder="e.g., BUDGET_LIMIT_LOW"
+          required
+        />
+      </div>
+
+      <div class="form-field">
+        <label class="form-label">Parameter Value</label>
+        <input
+          class="form-input"
+          type="number"
+          formControlName="paramValue"
+          required
+        />
+      </div>
+    </form>
+  </div>
+
+  <div
+    class="flex justify-end items-center gap-2 pt-4 border-t border-gray-200 dark:border-gray-700"
+  >
+    <button type="button" class="btn-secondary" (click)="onCancel()">
+      Cancel
+    </button>
+    <button
+      type="button"
+      class="btn-primary"
+      (click)="onSave()"
+      [disabled]="parameterForm.invalid"
+    >
+      {{ isEditMode ? "Update" : "Save" }}
+    </button>
+  </div>
+</div>

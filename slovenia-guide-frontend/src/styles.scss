@@ -114,7 +114,7 @@ $slovenia-guide-dark-theme: mat.define-dark-theme(
 
 // Button Styles
 .btn {
-  @apply px-4 py-2 rounded-md font-semibold focus:outline-none focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition-colors disabled:cursor-not-allowed disabled:opacity-50;
+  @apply px-4 py-2 rounded-md font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition-colors disabled:cursor-not-allowed disabled:opacity-50;
 }
 
 .btn-primary {
