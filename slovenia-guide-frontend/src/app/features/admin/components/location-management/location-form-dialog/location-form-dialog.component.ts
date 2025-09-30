@@ -7,9 +7,9 @@ import {
   ReactiveFormsModule,
   Validators,
 } from '@angular/forms';
-import { MaterialModule } from '../../../../shared/material.module';
+import { MaterialModule } from '../../../../../shared/material.module';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
-import { Location } from '../../../../core/models/location.model';
+import { Location } from '../../../../../core/models/location.model';
 
 @Component({
   selector: 'app-location-form-dialog',

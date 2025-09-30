@@ -9,14 +9,13 @@ import {
 import { CommonModule } from '@angular/common';
 import { MaterialModule } from '../../../../shared/material.module';
 import { MatDialog } from '@angular/material/dialog';
-import { LocationFormDialogComponent } from '../location-form-dialog/location-form-dialog.component';
+import { LocationFormDialogComponent } from './location-form-dialog/location-form-dialog.component';
 
 @Component({
   selector: 'app-location-management',
   standalone: true,
   imports: [CommonModule, MaterialModule],
   templateUrl: './location-management.component.html',
-  styleUrl: './location-management.component.scss',
 })
 export class LocationManagementComponent implements OnInit {
   private locationService = inject(LocationService);

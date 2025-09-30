@@ -1,40 +1,193 @@
-import { Component } from '@angular/core';
+import {
+  Component,
+  OnDestroy,
+  OnInit,
+  computed,
+  inject,
+  signal,
+} from '@angular/core';
 import {
   FormBuilder,
   FormGroup,
-  ReactiveFormsModule,
   Validators,
+  ReactiveFormsModule,
+  FormArray,
+  FormControl,
 } from '@angular/forms';
-import { TravelPlanService } from '../../services/travel-plan.service';
 import { CommonModule } from '@angular/common';
+import { MaterialModule } from '../../../../shared/material.module';
+import { TravelPlanService } from '../../services/travel-plan.service';
+import {
+  ItineraryItem,
+  TravelPlanResponse,
+} from '../../../../core/models/travel-plan.model';
+import { Tag } from '../../../../core/models/location.model';
+import { TagService } from '../../services/tag.service';
 
 @Component({
   selector: 'app-plan-generator',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, MaterialModule],
   templateUrl: './plan-generator.component.html',
 })
-export class PlanGeneratorComponent {
-  preferencesForm: FormGroup;
+export class PlanGeneratorComponent implements OnInit, OnDestroy {
+  private fb = inject(FormBuilder);
+  private travelPlanService = inject(TravelPlanService);
+  private tagService = inject(TagService);
+  private alertPollingInterval: any;
 
-  constructor(
-    private fb: FormBuilder,
-    private travelPlanService: TravelPlanService
-  ) {
+  preferencesForm: FormGroup;
+  allInterests = signal<Tag[]>([]);
+  interestInput = new FormControl('');
+  isDropdownVisible = signal(false);
+
+  // NEW: A dedicated signal to hold the filter value from the input.
+  private interestFilterSignal = signal<string>('');
+
+  readonly months = [
+    { value: 1, name: 'January' },
+    { value: 2, name: 'February' },
+    { value: 3, name: 'March' },
+    { value: 4, name: 'April' },
+    { value: 5, name: 'May' },
+    { value: 6, name: 'June' },
+    { value: 7, name: 'July' },
+    { value: 8, name: 'August' },
+    { value: 9, name: 'September' },
+    { value: 10, name: 'October' },
+    { value: 11, name: 'November' },
+    { value: 12, name: 'December' },
+  ];
+
+  plan = signal<TravelPlanResponse | null>(null);
+
+  // UPDATED: This now depends on the new signal, which ensures it updates on every keystroke.
+  filteredInterests = computed(() => {
+    const filterValue = this.interestFilterSignal().toLowerCase();
+    const selectedInterests = this.interestsFormArray.value as string[];
+    return this.allInterests().filter(
+      (interest) =>
+        !selectedInterests.includes(interest.name) &&
+        interest.name.toLowerCase().includes(filterValue)
+    );
+  });
+
+  get interestsFormArray() {
+    return this.preferencesForm.get('interests') as FormArray;
+  }
+
+  planByDay = computed(() => {
+    const p = this.plan();
+    if (!p) return [];
+
+    const grouped = p.itinerary.reduce((acc, item) => {
+      (acc[item.day] = acc[item.day] || []).push(item);
+      return acc;
+    }, {} as { [key: number]: ItineraryItem[] });
+
+    return Object.keys(grouped).map((day) => ({
+      day: Number(day),
+      items: grouped[Number(day)],
+    }));
+  });
+
+  constructor() {
     this.preferencesForm = this.fb.group({
-      numberOfDays: [3, [Validators.required, Validators.min(1)]],
+      numberOfDays: [
+        3,
+        [Validators.required, Validators.min(1), Validators.max(14)],
+      ],
       budget: ['MEDIUM', Validators.required],
       transport: ['CAR', Validators.required],
       fitnessLevel: ['MEDIUM', Validators.required],
-      interests: [['nature', 'history'], Validators.required],
       travelMonth: [7, Validators.required],
+      interests: this.fb.array(
+        [],
+        [Validators.required, Validators.minLength(1)]
+      ),
     });
   }
 
-  generatePlan() {
-    if (this.preferencesForm.valid) {
-      console.log('Generating plan with:', this.preferencesForm.value);
-      // this.travelPlanService.generatePlan(this.preferencesForm.value).subscribe(...)
+  ngOnInit(): void {
+    this.tagService.getTags().subscribe((tags) => {
+      this.allInterests.set(tags);
+    });
+
+    // NEW: Subscribe to the input's value changes and update our filter signal.
+    // This is the bridge between reactive forms and signals.
+    this.interestInput.valueChanges.subscribe((value) => {
+      this.interestFilterSignal.set(value || '');
+    });
+  }
+
+  addInterest(interestName: string): void {
+    if (interestName && !this.interestsFormArray.value.includes(interestName)) {
+      this.interestsFormArray.push(this.fb.control(interestName));
     }
+    this.interestInput.setValue('');
+    setTimeout(() => this.isDropdownVisible.set(false), 100);
+  }
+
+  removeInterest(index: number): void {
+    this.interestsFormArray.removeAt(index);
+  }
+
+  generatePlan(): void {
+    if (this.preferencesForm.invalid) {
+      return;
+    }
+    this.travelPlanService
+      .generatePlan(this.preferencesForm.value)
+      .subscribe((response) => {
+        this.plan.set(response);
+        this.startAlertPolling(response.planId);
+      });
+  }
+
+  startOver(): void {
+    this.plan.set(null);
+    clearInterval(this.alertPollingInterval);
+
+    this.interestsFormArray.clear();
+
+    this.preferencesForm.reset({
+      numberOfDays: 3,
+      budget: 'MEDIUM',
+      transport: 'CAR',
+      fitnessLevel: 'MEDIUM',
+      travelMonth: 7,
+    });
+  }
+
+  private startAlertPolling(planId: string): void {
+    this.alertPollingInterval = setInterval(() => {
+      this.travelPlanService
+        .getCriticalAlerts(planId)
+        .subscribe((newAlerts) => {
+          if (newAlerts && newAlerts.length > 0) {
+            this.plan.update((currentPlan) => {
+              if (!currentPlan) return null;
+              const existingAlertMessages = new Set(
+                currentPlan.alerts.map((a) => a.message)
+              );
+              const uniqueNewAlerts = newAlerts.filter(
+                (a) => !existingAlertMessages.has(a.message)
+              );
+
+              if (uniqueNewAlerts.length > 0) {
+                return {
+                  ...currentPlan,
+                  alerts: [...currentPlan.alerts, ...uniqueNewAlerts],
+                };
+              }
+              return currentPlan;
+            });
+          }
+        });
+    }, 10000);
+  }
+
+  ngOnDestroy(): void {
+    clearInterval(this.alertPollingInterval);
   }
 }

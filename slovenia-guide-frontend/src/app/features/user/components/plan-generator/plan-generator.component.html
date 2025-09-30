@@ -1,7 +1,191 @@
-<div class="content-card max-w-2xl mx-auto">
-  <h2 class="text-2xl font-bold mb-4">Create Your Custom Slovenia Trip</h2>
+@if (plan(); as generatedPlan) {
+<!-- ITINERARY DISPLAY VIEW -->
+<div
+  class="bg-white/90 dark:bg-gray-800/95 backdrop-blur-sm shadow-2xl rounded-2xl p-8 w-full max-w-4xl mx-auto dark:text-white"
+>
+  <div class="flex justify-between items-start mb-6">
+    <div>
+      <h2 class="text-3xl font-bold">Your Custom Slovenia Itinerary</h2>
+      <p class="text-lg text-teal-600 dark:text-teal-400 font-semibold mt-1">
+        {{ generatedPlan.tripType }}
+      </p>
+    </div>
+    <button class="btn-secondary" (click)="startOver()">Start Over</button>
+  </div>
+
+  <!-- Alerts -->
+  @if(generatedPlan.alerts.length > 0) {
+  <div
+    class="mb-6 p-4 bg-yellow-100 dark:bg-yellow-900/50 border-l-4 border-yellow-500 text-yellow-800 dark:text-yellow-200 rounded-r-lg"
+  >
+    <h3 class="font-bold">Important Notes</h3>
+    <ul class="list-disc list-inside mt-2 space-y-1">
+      @for(alert of generatedPlan.alerts; track $index) {
+      <li>{{ alert.message }}</li>
+      }
+    </ul>
+  </div>
+  }
+
+  <!-- Itinerary by Day -->
+  <div class="space-y-8">
+    @for(day of planByDay(); track day.day) {
+    <div>
+      <h3 class="text-2xl font-semibold border-b-2 border-teal-500 pb-2 mb-4">
+        Day {{ day.day }}
+      </h3>
+      <div class="space-y-4">
+        @for(item of day.items; track item.location.id) {
+        <div class="p-4 bg-gray-50 dark:bg-gray-700/60 rounded-lg shadow-sm">
+          <p class="font-bold text-lg text-teal-700 dark:text-teal-300">
+            {{ item.location.name }}
+          </p>
+          <p class="text-gray-700 dark:text-gray-300 mt-1">
+            {{ item.proposedActivity }}
+          </p>
+          <p class="text-sm text-gray-600 dark:text-gray-400 mt-2">
+            {{ item.location.region }} - {{ item.location.type }}
+          </p>
+
+          <!-- Display Tags as Bubbles -->
+          <div class="mt-3 flex flex-wrap gap-2">
+            @for(tag of item.location.tags; track tag.id) {
+            <span
+              class="text-xs font-medium px-2 py-1 bg-teal-100 text-teal-800 dark:bg-teal-900/70 dark:text-teal-200 rounded-full"
+            >
+              {{ tag.name }}
+            </span>
+            }
+          </div>
+        </div>
+        }
+      </div>
+    </div>
+    }
+  </div>
+</div>
+} @else {
+<!-- PREFERENCE FORM VIEW -->
+<div
+  class="bg-white/80 dark:bg-gray-800/90 backdrop-blur-sm shadow-2xl rounded-2xl p-8 w-full max-w-3xl mx-auto dark:text-white"
+>
+  <h2 class="text-3xl font-bold text-center mb-6">
+    Create Your Custom Slovenia Trip
+  </h2>
   <form [formGroup]="preferencesForm" (ngSubmit)="generatePlan()">
-    <p>Form fields for preferences go here...</p>
-    <button type="submit">Generate Plan</button>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+      <!-- Fields for days, month, budget, etc. -->
+      <div class="form-field">
+        <label class="form-label">Number of Days</label
+        ><input
+          class="form-input"
+          type="number"
+          formControlName="numberOfDays"
+        />
+      </div>
+      <div class="form-field">
+        <label class="form-label">Month of Travel</label
+        ><select class="form-input" formControlName="travelMonth">
+          @for(month of months; track month.value){
+          <option [value]="month.value">{{ month.name }}</option>
+          }
+        </select>
+      </div>
+      <div class="form-field">
+        <label class="form-label">Budget</label
+        ><select class="form-input" formControlName="budget">
+          <option value="LOW">Low</option>
+          <option value="MEDIUM">Medium</option>
+          <option value="HIGH">High</option>
+        </select>
+      </div>
+      <div class="form-field">
+        <label class="form-label">Mode of Transport</label
+        ><select class="form-input" formControlName="transport">
+          <option value="CAR">Car</option>
+          <option value="PUBLIC_TRANSPORT">Public Transport</option>
+        </select>
+      </div>
+      <div class="form-field col-span-1 md:col-span-2">
+        <label class="form-label">Physical Fitness Level</label
+        ><select class="form-input" formControlName="fitnessLevel">
+          <option value="LOW">Low (Relaxed pace, minimal walking)</option>
+          <option value="MEDIUM">
+            Medium (Comfortable with walking/light hiking)
+          </option>
+          <option value="HIGH">
+            High (Ready for demanding hikes & activities)
+          </option>
+        </select>
+      </div>
+
+      <!-- Combobox for Interests -->
+      <div class="form-field col-span-1 md:col-span-2">
+        <label class="form-label">Interests (select at least one)</label>
+        <div class="relative">
+          <div class="tag-container">
+            @for(interest of interestsFormArray.controls; track $index) {
+            <span class="tag-bubble">
+              {{ interest.value }}
+              <button
+                type="button"
+                class="tag-remove-btn"
+                (click)="removeInterest($index)"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="h-4 w-4"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                </svg>
+              </button>
+            </span>
+            }
+            <input
+              class="tag-input"
+              placeholder="Type to add an interest..."
+              [formControl]="interestInput"
+              (focus)="isDropdownVisible.set(true)"
+              (blur)="isDropdownVisible.set(false)"
+            />
+          </div>
+
+          <!-- Dropdown with filtered interests -->
+          @if(isDropdownVisible() && filteredInterests().length > 0) {
+          <div
+            class="absolute z-10 w-full mt-1 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-lg max-h-60 overflow-y-auto"
+          >
+            @for(interest of filteredInterests(); track interest.id) {
+            <div
+              class="p-2 hover:bg-teal-100 dark:hover:bg-teal-800 cursor-pointer"
+              (mousedown)="addInterest(interest.name)"
+            >
+              <span class="capitalize">{{ interest.name }}</span>
+            </div>
+            }
+          </div>
+          }
+        </div>
+      </div>
+    </div>
+
+    <div class="mt-8">
+      <button
+        type="submit"
+        class="btn-primary w-full"
+        [disabled]="preferencesForm.invalid"
+      >
+        Generate My Plan
+      </button>
+    </div>
   </form>
 </div>
+}
