@@ -1,0 +1,38 @@
+package com.ftn.sbnz.rules.daytrip;
+
+import com.ftn.sbnz.model.dtos.daytrip.DayTripRequest;
+import com.ftn.sbnz.model.facts.DayTripCandidate;
+import com.ftn.sbnz.model.models.Location;
+import com.ftn.sbnz.model.models.Route;
+
+query "getTripCandidates"
+    $candidate: DayTripCandidate()
+end
+
+rule "Find Direct Day Trip Candidates"
+    when
+        $req: DayTripRequest($baseId: baseLocationId, $limit: maxTravelTime)
+        $base: Location(id == $baseId)
+        $dest: Location(id != $baseId)
+        Route(
+            (locationA == $base && locationB == $dest) || (locationA == $dest && locationB == $base),
+            $time: travelTimeMinutes < $limit
+        )
+    then
+        insert(new DayTripCandidate($dest, $base, $time));
+end
+
+rule "Find Indirect Day Trip Candidates"
+    when
+        $req: DayTripRequest($limit: maxTravelTime)
+        $candidate: DayTripCandidate($base: base, $intermediate: location, $baseTime: travelTimeFromBase)
+        $dest: Location(id != $base.id, id != $intermediate.id)
+        not DayTripCandidate(location == $dest)
+        Route(
+            (locationA == $intermediate && locationB == $dest) || (locationA == $dest && locationB == $intermediate),
+            $time: travelTimeMinutes
+        )
+        eval($baseTime + $time < $limit)
+    then
+        insert(new DayTripCandidate($dest, $base, $baseTime + $time));
+end

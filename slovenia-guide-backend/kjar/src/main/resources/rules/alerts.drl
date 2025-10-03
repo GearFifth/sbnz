@@ -1,0 +1,35 @@
+package com.ftn.sbnz.rules.alerts;
+
+import com.ftn.sbnz.model.dtos.Alert;
+import com.ftn.sbnz.model.dtos.ItineraryItem;
+import com.ftn.sbnz.rules.itinerary.DailyPlan;
+import com.ftn.sbnz.model.models.Location;
+import java.util.List;
+import java.util.HashSet;
+
+global java.util.List alerts;
+global java.util.Set uniqueAlerts;
+
+rule "Alert for overpacked day"
+    agenda-group "alerts"
+    salience -200
+    when
+        DailyPlan($day: day, totalTime > 420)
+    then
+        String message = "Plan za Dan " + $day + " je prilično ambiciozan. Proverite da li imate dovoljno vremena.";
+        if (uniqueAlerts.add(message)) {
+            alerts.add(new Alert(message, null, null));
+        }
+end
+
+rule "Alert for required equipment"
+    agenda-group "alerts"
+    salience -200
+    when
+        ItineraryItem($location: location, $location.requiredEquipment != null && !$location.requiredEquipment.isEmpty())
+    then
+        String message = "Preporučuje se: " + $location.getRequiredEquipment();
+        if (uniqueAlerts.add(message)) {
+            alerts.add(new Alert(message, null, $location.getId()));
+        }
+end

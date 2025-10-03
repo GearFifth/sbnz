@@ -1,0 +1,221 @@
+package com.ftn.sbnz.rules.scoring;
+
+import com.ftn.sbnz.model.dtos.TravelPreferences;
+import com.ftn.sbnz.model.models.Location;
+import com.ftn.sbnz.model.models.Tag;
+import com.ftn.sbnz.model.dtos.Recommendation;
+import com.ftn.sbnz.model.enums.FitnessLevel;
+import java.util.List;
+import java.util.Set;
+
+query "getRecommendations"
+    $rec: Recommendation()
+end
+
+rule "Create baseline recommendation for all valid locations"
+    agenda-group "scoring"
+    salience -10
+    when
+        $location: Location()
+        not Recommendation(location == $location)
+    then
+        Recommendation rec = new Recommendation($location, 10.0, "General option.");
+        insert(rec);
+        System.out.println("Kreirana OSNOVNA preporuka za: " + $location.getName() + " sa skorom 10.");
+end
+
+rule "Reward recommendations that match user interests"
+    agenda-group "scoring"
+    salience 10
+    when
+        $prefs: TravelPreferences($interests: interests)
+        $rec: Recommendation($location: location, $tags: location.getTags())
+        exists Tag(name memberOf $interests) from $tags
+    then
+        modify($rec) {
+            setScore($rec.getScore() + 10),
+            setReason("Matches user interest.")
+        }
+        System.out.println("Povećan skor za lokaciju: " + $location.getName() + " zbog poklapanja interesa.");
+end
+
+
+rule "Boost Bled for romance interest"
+    agenda-group "scoring"
+    no-loop true
+    when
+        TravelPreferences(interests contains "romantika")
+        $rec: Recommendation(location.name == "Blejsko jezero", $score: score)
+    then
+        modify($rec) {
+            setScore($score + 20),
+            setReason($rec.getReason() + " Dodatni poeni za romantiku.")
+        }
+        System.out.println("Povećan skor za Bled (romantika). Novi skor: " + $rec.getScore());
+end
+
+rule "Boost Bohinj for adventure interest"
+    agenda-group "scoring"
+    no-loop true
+    when
+        TravelPreferences(interests contains "avantura")
+        $rec: Recommendation(location.name == "Bohinjsko jezero", $score: score)
+    then
+        modify($rec) {
+            setScore($score + 20),
+            setReason($rec.getReason() + " Dodatni poeni za avanturu.")
+        }
+        System.out.println("Povećan skor za Bohinj (avantura). Novi skor: " + $rec.getScore());
+end
+
+rule "Penalize Skocjan for low fitness"
+    agenda-group "scoring"
+    no-loop true
+    when
+        TravelPreferences(fitnessLevel == com.ftn.sbnz.model.enums.FitnessLevel.LOW)
+        $rec: Recommendation(location.name == "Škocjanske jame", $score: score)
+    then
+        modify($rec) {
+            setScore($score - 30),
+            setReason($rec.getReason() + " Umanjen skor zbog visoke fizičke zahtevnosti.")
+        }
+        System.out.println("Smanjen skor za Škocjanske jame (niska sprema). Novi skor: " + $rec.getScore());
+end
+
+rule "Reward Postojna for families"
+    agenda-group "scoring"
+    no-loop true
+    when
+        TravelPreferences(interests contains "porodice")
+        $rec: Recommendation(location.name == "Postojnska jama", $score: score)
+    then
+        modify($rec) {
+            setScore($score + 15),
+            setReason($rec.getReason() + " Dodatni poeni za porodične aktivnosti.")
+        }
+        System.out.println("Povećan skor za Postojnsku jamu (porodice). Novi skor: " + $rec.getScore());
+end
+
+rule "Reward Bohinj for authenticity"
+    agenda-group "scoring"
+    no-loop true
+    when
+        TravelPreferences(interests contains "autentično")
+        $rec: Recommendation(location.name == "Bohinjsko jezero", $score: score)
+    then
+        modify($rec) {
+            setScore($score + 15),
+            setReason($rec.getReason() + " Dodatni poeni za autentično iskustvo prirode.")
+        }
+        System.out.println("Povećan skor za Bohinj (autentičnost). Novi skor: " + $rec.getScore());
+end
+
+rule "Reward Skocjan Caves for specific interests"
+    agenda-group "scoring"
+    no-loop true
+    when
+        TravelPreferences(interests contains "UNESCO" || interests contains "geologija")
+        $rec: Recommendation(location.name == "Škocjanske jame", $score: score)
+    then
+        modify($rec) {
+            setScore($score + 25),
+            setReason($rec.getReason() + " Visok bonus za UNESCO i geološka interesovanja.")
+        }
+        System.out.println("Povećan skor za Škocjanske jame (UNESCO/geologija). Novi skor: " + $rec.getScore());
+end
+
+rule "Promote the Postojna + Predjama Castle package"
+    agenda-group "scoring"
+    no-loop true
+    salience -5
+    when
+        $rec1: Recommendation(location.name == "Postojnska jama", $score1: score)
+        $rec2: Recommendation(location.name == "Predjamski grad", $score2: score)
+    then
+        modify($rec1) {
+            setScore($score1 + 10),
+            setReason($rec1.getReason() + " Bonus jer je u paketu sa Predjamskim gradom.")
+        }
+        modify($rec2) {
+            setScore($score2 + 10),
+            setReason($rec2.getReason() + " Bonus jer je u paketu sa Postojnskom jamom.")
+        }
+        System.out.println("Povećan skor za Postojnu i Predjamski grad kao paket.");
+end
+
+rule "Promote Ljubljana for urban interest on longer trips"
+    agenda-group "scoring"
+    no-loop true
+    when
+        TravelPreferences(numberOfDays >= 3, interests contains "grad")
+        $rec: Recommendation(location.name == "Ljubljana", $score: score)
+    then
+        modify($rec) {
+            setScore($score + 15),
+            setReason($rec.getReason() + " Bonus kao odlična gradska baza za duže putovanje.")
+        }
+        System.out.println("Povećan skor za Ljubljanu (jer je gradska baza). Novi skor: " + $rec.getScore());
+end
+
+rule "Promote Ljubljana as a central hub for multi-region trips"
+    agenda-group "scoring"
+    no-loop true
+    when
+        TravelPreferences(numberOfDays >= 3)
+        accumulate(
+            Recommendation(score > 10, $region: location.getRegion());
+            $regions: collectSet($region)
+        )
+        Set(size >= 2) from $regions
+        $rec: Recommendation(location.name == "Ljubljana", $score: score)
+    then
+        modify($rec) {
+            setScore($score + 20),
+            setReason($rec.getReason() + " Bonus kao centralno čvorište za putovanje kroz više regiona.")
+        }
+        System.out.println("Povećan skor za Ljubljanu (jer je centralno čvorište). Novi skor: " + $rec.getScore());
+end
+
+rule "Synergy between Soca Valley and Kobarid Museum - Advanced"
+    agenda-group "scoring"
+    no-loop true
+    salience -5
+    when
+        $prefs: TravelPreferences(interests contains "avantura")
+        exists (String(this matches ".*istorija.*") from $prefs.getInterests())
+        $rec1: Recommendation(location.name == "Dolina Soče", $score1: score)
+        $rec2: Recommendation(location.name == "Kobariški muzej", $score2: score)
+    then
+        modify($rec1) { setScore($score1 + 20) }
+        modify($rec2) { setScore($score2 + 20) }
+        System.out.println("Povećan skor za Dolinu Soče i Kobariški muzej kao paket.");
+end
+
+rule "Promote Eastern Heritage Trail"
+    agenda-group "scoring"
+    no-loop true
+    when
+        TravelPreferences(interests contains "vino", interests contains "istorija")
+        $rec: Recommendation(location.name in ("Maribor", "Ptuj", "Celje"), $score: score)
+    then
+        modify($rec) {
+            setScore($score + 25),
+            setReason($rec.getReason() + " Bonus kao deo Staze istočnog nasleđa.")
+        }
+        System.out.println("Povećan skor za " + $rec.getLocation().getName() + " (istočno nasleđe).");
+end
+
+rule "Massive boost for perfect adventurer profile"
+    agenda-group "scoring"
+    no-loop true
+    salience 5
+    when
+        TravelPreferences(fitnessLevel == FitnessLevel.HIGH, interests contains "izazovno")
+        $rec: Recommendation(location.requiredFitness == FitnessLevel.HIGH, $score: score)
+    then
+        modify($rec) {
+            setScore($score + 50),
+            setReason($rec.getReason() + " Specijalan bonus za idealnog avanturistu.")
+        }
+        System.out.println("Specijalan bonus za " + $rec.getLocation().getName() + ". Novi skor: " + $rec.getScore());
+end

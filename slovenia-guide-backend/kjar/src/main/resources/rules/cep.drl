@@ -1,0 +1,32 @@
+package com.ftn.sbnz.rules.cep;
+
+import com.ftn.sbnz.model.events.RoadStatusEvent;
+import com.ftn.sbnz.model.enums.RoadStatus;
+import com.ftn.sbnz.model.dtos.travelPlan.TravelPlanResponse;
+import com.ftn.sbnz.model.dtos.ItineraryItem;
+import com.ftn.sbnz.model.dtos.Alert;
+import java.util.UUID;
+
+declare RoadStatusEvent
+    @role(event)
+    @timestamp(timestamp)
+end
+
+query "getAlertsForPlan"(UUID pId)
+    $alert: Alert(planId == pId)
+end
+
+query "getActiveRoadStatusEvents"
+    $event: RoadStatusEvent()
+end
+
+rule "React to Vrsic Pass Closure on existing plans"
+    when
+        $event: RoadStatusEvent(roadName == "Vršič", status == RoadStatus.CLOSED)
+        $plan: TravelPlanResponse($itinerary: itinerary, $planId: planId)
+        exists ItineraryItem(location.name == "Triglavski narodni park" || location.name == "Kranjska Gora") from $itinerary
+    then
+        String message = "Kritično upozorenje: Putni prelaz Vršič je zatvoren, vaš plan za posetu Gorenjskoj je ugrožen!";
+        insert(new Alert(message, $planId, null));
+        System.out.println("====== Ubačeno kritično upozorenje (CEP) za plan " + $planId + " ======");
+end

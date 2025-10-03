@@ -1,0 +1,179 @@
+package com.ftn.sbnz.rules.backward;
+
+import com.ftn.sbnz.model.dtos.TravelPreferences;
+import com.ftn.sbnz.model.dtos.ItineraryItem;
+import com.ftn.sbnz.model.facts.TripClassification;
+import com.ftn.sbnz.model.facts.TripFocus;
+import com.ftn.sbnz.model.facts.TripIntensity;
+import com.ftn.sbnz.model.facts.TripPacing;
+import com.ftn.sbnz.model.enums.FitnessLevel;
+import com.ftn.sbnz.model.enums.PacingLevel;
+
+query "getTripClassification"
+    $classification: TripClassification()
+end
+
+rule "Conclude: High-Intensity Alpine Expedition"
+    agenda-group "classification"
+    when
+        TripFocus(focusType == "ALPINE")
+        TripIntensity(intensityLevel == "ACTIVE")
+        TripPacing(level == PacingLevel.FAST_PACED)
+    then
+        insert(new TripClassification("Ekstremna alpska ekspedicija"));
+end
+
+rule "Conclude: Relaxed Cultural City Break"
+    agenda-group "classification"
+    when
+        TripFocus(focusType == "URBAN_CULTURE")
+        TripIntensity(intensityLevel == "RELAXED")
+        TripPacing(level == PacingLevel.RELAXED)
+    then
+        insert(new TripClassification("Opuštena gradska tura posvećena kulturi"));
+end
+
+rule "Conclude: Balanced Karst & Coast Tour"
+    agenda-group "classification"
+    when
+        TripFocus(focusType == "COASTAL_KARST")
+        TripIntensity(intensityLevel == "MODERATE")
+        TripPacing(level == PacingLevel.BALANCED)
+    then
+        insert(new TripClassification("Balansirana tura po krasu i obali"));
+end
+
+rule "Conclude: Relaxed Alpine Vacation"
+    agenda-group "classification"
+    when
+        TripFocus(focusType == "ALPINE")
+        TripIntensity(intensityLevel == "RELAXED")
+    then
+        insert(new TripClassification("Opušteni odmor u Alpima"));
+end
+
+rule "Conclude: Eastern Wine & History Trail"
+    agenda-group "classification"
+    when
+        TripFocus(focusType == "EASTERN_HERITAGE")
+        TripPacing(level != PacingLevel.FAST_PACED)
+    then
+        insert(new TripClassification("Lagana tura istočnog nasleđa i vina"));
+end
+
+rule "Conclude: Adrenaline Karst Adventure"
+    agenda-group "classification"
+    when
+        TripFocus(focusType == "COASTAL_KARST")
+        TripIntensity(intensityLevel == "ACTIVE")
+    then
+        insert(new TripClassification("Adrenalinska avantura po krasu"));
+end
+
+rule "Conclude: General Trip"
+    agenda-group "classification"
+    salience -10
+    when
+        not TripClassification()
+    then
+        insert(new TripClassification("Generalno putovanje po meri"));
+end
+
+// --- Pravila za dokazivanje TEMPA putovanja ---
+rule "Deduce: Fast Pacing"
+    agenda-group "classification"
+    when
+        $prefs: TravelPreferences($days: numberOfDays)
+        accumulate(ItineraryItem(); $count: count(1))
+        eval($count.doubleValue() / $days >= 2.0)
+    then
+        insert(new TripPacing(PacingLevel.FAST_PACED));
+end
+
+rule "Deduce: Relaxed Pacing"
+    agenda-group "classification"
+    when
+        $prefs: TravelPreferences($days: numberOfDays)
+        accumulate(ItineraryItem(); $count: count(1))
+        eval($count.doubleValue() / $days < 1.5)
+    then
+        insert(new TripPacing(PacingLevel.RELAXED));
+end
+
+rule "Deduce: Balanced Pacing"
+    agenda-group "classification"
+    when
+        not TripPacing()
+    then
+        insert(new TripPacing(PacingLevel.BALANCED));
+end
+
+// --- Pravila za dokazivanje FOKUSA putovanja ---
+rule "Deduce: Alpine Focus"
+    agenda-group "classification"
+    when
+        accumulate(ItineraryItem(); $totalCount: count(1))
+        accumulate(ItineraryItem(location.region == "Gorenjska"); $regionCount: count(1))
+        eval($regionCount > 0 && $regionCount.doubleValue() / $totalCount >= 0.5)
+    then
+        insert(new TripFocus("ALPINE"));
+end
+
+rule "Deduce: Karst & Coast Focus"
+    agenda-group "classification"
+    when
+        accumulate(ItineraryItem(); $totalCount: count(1))
+        accumulate(ItineraryItem(location.region in ("Obalno-kraška", "Notranjsko-kraška")); $regionCount: count(1))
+        eval($regionCount > 0 && $regionCount.doubleValue() / $totalCount >= 0.5)
+    then
+        insert(new TripFocus("COASTAL_KARST"));
+end
+
+rule "Deduce: Eastern Heritage Focus"
+    agenda-group "classification"
+    when
+        accumulate(ItineraryItem(); $totalCount: count(1))
+        accumulate(ItineraryItem(location.region in ("Podravska", "Savinjska")); $regionCount: count(1))
+        eval($regionCount > 0 && $regionCount.doubleValue() / $totalCount >= 0.5)
+    then
+        insert(new TripFocus("EASTERN_HERITAGE"));
+end
+
+rule "Deduce: Urban Culture Focus"
+    agenda-group "classification"
+    when
+        accumulate(ItineraryItem(); $totalCount: count(1))
+        accumulate(ItineraryItem(location.type in ("Grad", "Glavni grad", "Istorijski grad")); $urbanCount: count(1))
+        eval($urbanCount > 0 && $urbanCount.doubleValue() / $totalCount >= 0.6)
+    then
+        insert(new TripFocus("URBAN_CULTURE"));
+end
+
+// --- Pravila za dokazivanje INTENZITETA putovanja ---
+rule "Deduce: Active Intensity"
+    agenda-group "classification"
+    when
+        ( TravelPreferences(fitnessLevel == FitnessLevel.HIGH) and
+          exists ItineraryItem(location.requiredFitness in (FitnessLevel.MEDIUM, FitnessLevel.HIGH)) )
+        or
+        ( exists ItineraryItem(location.requiredFitness == FitnessLevel.HIGH) )
+    then
+        insert(new TripIntensity("ACTIVE"));
+end
+
+rule "Deduce: Relaxed Intensity"
+    agenda-group "classification"
+    when
+        not TripIntensity(intensityLevel == "ACTIVE")
+        not ItineraryItem(location.requiredFitness != FitnessLevel.LOW)
+    then
+        insert(new TripIntensity("RELAXED"));
+end
+
+rule "Deduce: Moderate Intensity"
+    agenda-group "classification"
+    when
+        not TripIntensity()
+    then
+        insert(new TripIntensity("MODERATE"));
+end

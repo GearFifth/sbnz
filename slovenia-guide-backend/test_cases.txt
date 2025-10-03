@@ -1,0 +1,106 @@
+{
+    "numberOfDays": 3,
+    "budget": "HIGH",
+    "transport": "CAR",
+    "fitnessLevel": "HIGH",
+    "interests": ["UNESCO", "pećina", "istorija WW1"],
+    "travelMonth": 3
+}
+
+
+----------- SCORING ------------
+- ovim upitom bi trebao bled da dobije vise bodova zbog taga 'romantika'
+
+{
+    "numberOfDays": 3,
+    "budget": "MEDIUM",
+    "transport": "PUBLIC_TRANSPORT",
+    "fitnessLevel": "MEDIUM",
+    "interests": ["priroda", "planinarenje", "romantika"],
+    "travelMonth": 6
+}
+
+- slucaj 2
+{
+    "numberOfDays": 3,
+    "budget": "MEDIUM",
+    "transport": "PUBLIC_TRANSPORT",
+    "fitnessLevel": "MEDIUM",
+    "interests": ["pećina", "porodice"],
+    "travelMonth": 6
+}
+
+-slucaj 3
+{
+    "numberOfDays": 4,
+    "budget": "HIGH",
+    "transport": "CAR",
+    "fitnessLevel": "HIGH",
+    "interests": ["istorija", "vino", "avantura"],
+    "travelMonth": 8
+}
+Maribor, Ptuj i Celje
+Dolina Soče i Kobariški muzej
+
+----------- CEP ------------
+
+za testiranje:
+{
+    "numberOfDays": 3,
+    "budget": "HIGH",
+    "transport": "CAR",
+    "fitnessLevel": "HIGH",
+    "interests": ["priroda"],
+    "travelMonth": 7
+}
+
+Test bez događaja: Triglavski narodni park kao preporuka.
+Kada se dogodi CEP dogadjaj korisnik dobija informaciju o upozorenju (endpoint za critical alerts).
+Za aktiviranje dogadjaja salje admin
+{
+    "roadName": "Vršič",
+    "status": "CLOSED"
+}
+Ukoliko korisnik nakon ovoga ponovo posalje upit za generisanje plana, nece se uzimati u obzir triglavski park zbog vrsica
+
+
+----------- BACKWARD CHAINING prvi -----------
+{
+    "numberOfDays": 3,
+    "budget": "HIGH",
+    "transport": "CAR",
+    "fitnessLevel": "LOW",
+    "interests": ["grad", "kultura", "muzeji", "arhitektura", "gastronomija"],
+    "travelMonth": 9
+}
+Opuštena gradska tura posvećena kulturi
+
+{
+    "numberOfDays": 2,
+    "budget": "HIGH",
+    "transport": "CAR",
+    "fitnessLevel": "HIGH",
+    "interests": ["pećina", "UNESCO", "izazovno", "avantura"],
+    "travelMonth": 8
+}
+Adrenalinska avantura po krasu
+
+{
+    "numberOfDays": 3,
+    "budget": "MEDIUM",
+    "transport": "CAR",
+    "fitnessLevel": "MEDIUM",
+    "interests": ["vino", "istorija", "dvorac", "stara trta"],
+    "travelMonth": 9
+}
+Lagana tura istočnog nasleđa i vina
+
+----------- BACKWARD CHAINING drugi rekurzivni -----------
+ljubljana id = 2b0f8756-5a05-443a-b730-c0ff4086dd6a
+Blejsko jezero id = e68eba65-fec0-4ce9-9099-30dd087311c5
+Maribor id = f03330b9-86ef-4ddf-a2ac-c46524f88481
+
+Bohinjsko jezero = dd2f23da-5d36-42f4-8926-59f7d1040cb7
+
+
+

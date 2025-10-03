@@ -1,0 +1,25 @@
+package com.ftn.sbnz.rules.reachability;
+
+import com.ftn.sbnz.model.models.Location;
+import com.ftn.sbnz.model.models.Route;
+
+query isReachable(Location $start, Location $dest, int $timeBudget)
+    // base case
+    Route(
+        (locationA == $start && locationB == $dest) ||
+        (locationA == $dest && locationB == $start),
+        travelTimeMinutes < $timeBudget
+    )
+    or
+    // recursive case
+    (
+        $intermediate: Location(id != $dest.id) and
+        Route(
+            (locationA == $start && locationB == $intermediate) ||
+            (locationA == $intermediate && locationB == $start),
+            $timeToIntermediate: travelTimeMinutes < $timeBudget
+        ) and
+        $remainingTime : Integer() from ($timeBudget - $timeToIntermediate) and
+        isReachable($intermediate, $dest, $remainingTime;)
+    )
+end

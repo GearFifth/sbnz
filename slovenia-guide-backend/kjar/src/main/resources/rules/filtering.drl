@@ -1,0 +1,83 @@
+package com.ftn.sbnz.rules.filtering;
+
+import com.ftn.sbnz.model.dtos.TravelPreferences;
+import com.ftn.sbnz.model.models.Location;
+import com.ftn.sbnz.model.enums.Transport;
+import com.ftn.sbnz.model.enums.PublicTransportAccessibility;
+import com.ftn.sbnz.model.models.RuleParameter;
+import com.ftn.sbnz.model.enums.Budget;
+import com.ftn.sbnz.model.events.RoadStatusEvent;
+import com.ftn.sbnz.model.enums.RoadStatus;
+
+query "getLocations"
+    $location: Location()
+end
+
+rule "Filter out locations not accessible by public transport"
+    agenda-group "scoring"
+    salience 20
+    when
+        TravelPreferences(transport == Transport.PUBLIC_TRANSPORT)
+        $location: Location(publicTransportAccessibility == PublicTransportAccessibility.CAR_ONLY)
+    then
+        delete($location);
+        System.out.println("Filtrirana lokacija zbog prevoza: " + $location.getName());
+end
+
+rule "Filter out locations based on fitness level"
+    agenda-group "scoring"
+    salience 20
+    when
+        $prefs: TravelPreferences($fitness: fitnessLevel)
+        $location: Location($reqFitness: requiredFitness, eval($reqFitness.ordinal() > $fitness.ordinal()))
+    then
+        delete($location);
+        System.out.println("Filtrirana lokacija zbog fizičke spreme: " + $location.getName());
+end
+
+
+rule "Filter out seasonally closed locations"
+    agenda-group "scoring"
+    salience 20
+    when
+        $prefs: TravelPreferences($month: travelMonth)
+        $location: Location(seasonal == true, openingMonth > $month || closingMonth < $month)
+    then
+        delete($location);
+        System.out.println("Filtrirana lokacija zbog sezone: " + $location.getName());
+end
+
+//rule "Filter expensive locations for LOW budget"
+//    agenda-group "scoring"
+//    salience 20
+//    when
+//        TravelPreferences(budget == Budget.LOW)
+//        RuleParameter(paramKey == "BUDGET_LIMIT_LOW", $limit: paramValue)
+//        $location: Location(ticketPrice > $limit)
+//    then
+//        delete($location);
+//        System.out.println("Filtrirana lokacija zbog niskog budžeta: " + $location.getName());
+//end
+//
+//rule "Filter expensive locations for MEDIUM budget"
+//    agenda-group "scoring"
+//    salience 20
+//    when
+//        TravelPreferences(budget == Budget.MEDIUM)
+//        RuleParameter(paramKey == "BUDGET_LIMIT_MEDIUM", $limit: paramValue)
+//        $location: Location(ticketPrice > $limit)
+//    then
+//        delete($location);
+//        System.out.println("Filtrirana lokacija zbog srednjeg budžeta: " + $location.getName());
+//end
+
+rule "Filter locations if access road is closed"
+    agenda-group "scoring"
+    salience 30
+    when
+        RoadStatusEvent(roadName == "Vršič", status == RoadStatus.CLOSED)
+        $location: Location(name == "Triglavski narodni park" || name == "Kranjska Gora")
+    then
+        delete($location);
+        System.out.println("Filtrirana lokacija (zbog CEP događaja) '" + $location.getName() + "' jer je prelaz Vršič zatvoren.");
+end
