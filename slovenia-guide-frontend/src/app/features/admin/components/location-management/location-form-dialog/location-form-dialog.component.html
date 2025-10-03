@@ -52,24 +52,24 @@
 
       <div class="form-field">
         <label class="form-label">Required Fitness</label>
-        <select class="form-input" formControlName="requiredFitness">
-          <option value="LOW">Low</option>
-          <option value="MEDIUM">Medium</option>
-          <option value="HIGH">High</option>
-        </select>
+        <app-select-combobox
+          formControlName="requiredFitness"
+          [options]="fitnessOptions"
+          optionValueKey="value"
+          optionDisplayKey="name"
+          placeholder="Select fitness level..."
+        ></app-select-combobox>
       </div>
 
       <div class="form-field">
         <label class="form-label">Public Transport</label>
-        <select
-          class="form-input"
+        <app-select-combobox
           formControlName="publicTransportAccessibility"
-        >
-          <option value="EXCELLENT">Excellent</option>
-          <option value="GOOD">Good</option>
-          <option value="COMPLICATED">Complicated</option>
-          <option value="CAR_ONLY">Car Only</option>
-        </select>
+          [options]="transportOptions"
+          optionValueKey="value"
+          optionDisplayKey="name"
+          placeholder="Select accessibility..."
+        ></app-select-combobox>
       </div>
 
       <div class="form-field col-span-2">
@@ -141,19 +141,23 @@
       @if(locationForm.get('seasonal')?.value) {
       <div class="form-field">
         <label class="form-label">Opening Month</label>
-        <select class="form-input" formControlName="openingMonth">
-          @for(month of months; track month) {
-          <option [value]="month">{{ month }}</option>
-          }
-        </select>
+        <app-select-combobox
+          formControlName="openingMonth"
+          [options]="months"
+          optionValueKey="value"
+          optionDisplayKey="name"
+          placeholder="Select month..."
+        ></app-select-combobox>
       </div>
       <div class="form-field">
         <label class="form-label">Closing Month</label>
-        <select class="form-input" formControlName="closingMonth">
-          @for(month of months; track month) {
-          <option [value]="month">{{ month }}</option>
-          }
-        </select>
+        <app-select-combobox
+          formControlName="closingMonth"
+          [options]="months"
+          optionValueKey="value"
+          optionDisplayKey="name"
+          placeholder="Select month..."
+        ></app-select-combobox>
       </div>
       }
     </form>

@@ -6,7 +6,7 @@
   <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
     <!-- SECTION 1: FIND DAY TRIPS -->
     <div class="p-6 border dark:border-gray-700 rounded-lg">
-      <h3 class="text-2xl font-semibold mb-4">Find Trip Suggestions</h3>
+      <h3 class="text-2xl font-medium mb-4">Find Trip Suggestions</h3>
       <form
         [formGroup]="findTripsForm"
         (ngSubmit)="onFindTrips()"
@@ -14,12 +14,14 @@
       >
         <div class="form-field">
           <label class="form-label">Starting From</label>
-          <select class="form-input" formControlName="baseLocationId">
-            <option value="" disabled>Select a base location...</option>
-            @for(location of allLocations(); track location.id) {
-            <option [value]="location.id">{{ location.name }}</option>
-            }
-          </select>
+          <app-select-combobox
+            formControlName="baseLocationId"
+            [options]="allLocations()"
+            optionValueKey="id"
+            optionDisplayKey="name"
+            placeholder="Select a base location..."
+            [sortable]="true"
+          ></app-select-combobox>
         </div>
         <div class="form-field">
           <label class="form-label"
@@ -50,7 +52,7 @@
           <li
             class="p-3 bg-gray-50 dark:bg-gray-700/60 rounded-md flex justify-between items-center"
           >
-            <span class="font-semibold text-teal-700 dark:text-teal-300">{{
+            <span class="font-medium text-teal-700 dark:text-teal-300">{{
               suggestion.location.name
             }}</span>
             <span class="text-sm text-gray-500 dark:text-gray-400"
@@ -70,7 +72,7 @@
 
     <!-- SECTION 2: VALIDATE TRIP -->
     <div class="p-6 border dark:border-gray-700 rounded-lg">
-      <h3 class="text-2xl font-semibold mb-4">Validate Reachability</h3>
+      <h3 class="text-2xl font-medium mb-4">Validate Reachability</h3>
       <form
         [formGroup]="validateTripForm"
         (ngSubmit)="onValidateTrip()"
@@ -78,21 +80,25 @@
       >
         <div class="form-field">
           <label class="form-label">Starting From</label>
-          <select class="form-input" formControlName="baseLocationId">
-            <option value="" disabled>Select a base location...</option>
-            @for(location of allLocations(); track location.id) {
-            <option [value]="location.id">{{ location.name }}</option>
-            }
-          </select>
+          <app-select-combobox
+            formControlName="baseLocationId"
+            [options]="allLocations()"
+            optionValueKey="id"
+            optionDisplayKey="name"
+            placeholder="Select a base location..."
+            [sortable]="true"
+          ></app-select-combobox>
         </div>
         <div class="form-field">
           <label class="form-label">Destination</label>
-          <select class="form-input" formControlName="destinationLocationId">
-            <option value="" disabled>Select a destination...</option>
-            @for(location of allLocations(); track location.id) {
-            <option [value]="location.id">{{ location.name }}</option>
-            }
-          </select>
+          <app-select-combobox
+            formControlName="destinationLocationId"
+            [options]="allLocations()"
+            optionValueKey="id"
+            optionDisplayKey="name"
+            placeholder="Select a destination..."
+            [sortable]="true"
+          ></app-select-combobox>
         </div>
         <div class="form-field">
           <label class="form-label"
@@ -116,7 +122,7 @@
       <!-- Results for Validate Trip -->
       @if(validationResult(); as result) {
       <div
-        class="mt-6 p-4 rounded-lg text-center font-semibold"
+        class="mt-6 p-4 rounded-lg text-center font-medium"
         [class.bg-green-100]="result.reachable"
         [class.dark:bg-green-900]="result.reachable"
         [class.text-green-800]="result.reachable"

@@ -28,7 +28,6 @@ export class RuleParameterFormDialogComponent implements OnInit {
     this.isEditMode = !!this.data.parameter;
 
     this.parameterForm = this.fb.group({
-      // paramKey is disabled in edit mode because it's the primary key
       paramKey: [{ value: '', disabled: this.isEditMode }, Validators.required],
       paramValue: [0, [Validators.required]],
     });

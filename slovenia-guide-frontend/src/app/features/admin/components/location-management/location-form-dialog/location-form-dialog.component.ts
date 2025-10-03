@@ -10,11 +10,12 @@ import {
 import { MaterialModule } from '../../../../../shared/material.module';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { Location } from '../../../../../core/models/location.model';
+import { SelectComboboxComponent } from '../../../../../shared/components/select-combobox/select-combobox.component';
 
 @Component({
   selector: 'app-location-form-dialog',
   standalone: true,
-  imports: [CommonModule, MaterialModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, SelectComboboxComponent],
   templateUrl: './location-form-dialog.component.html',
 })
 export class LocationFormDialogComponent implements OnInit {
@@ -24,8 +25,24 @@ export class LocationFormDialogComponent implements OnInit {
 
   locationForm!: FormGroup;
   isEditMode = false;
-  months = Array.from({ length: 12 }, (_, i) => i + 1);
   tagInput = new FormControl('');
+
+  // Podaci za novi combobox
+  readonly months = Array.from({ length: 12 }, (_, i) => ({
+    value: i + 1,
+    name: `${i + 1}`,
+  }));
+  readonly fitnessOptions = [
+    { value: 'LOW', name: 'Low' },
+    { value: 'MEDIUM', name: 'Medium' },
+    { value: 'HIGH', name: 'High' },
+  ];
+  readonly transportOptions = [
+    { value: 'EXCELLENT', name: 'Excellent' },
+    { value: 'GOOD', name: 'Good' },
+    { value: 'COMPLICATED', name: 'Complicated' },
+    { value: 'CAR_ONLY', name: 'Car Only' },
+  ];
 
   ngOnInit(): void {
     this.isEditMode = !!this.data.location;
@@ -82,18 +99,15 @@ export class LocationFormDialogComponent implements OnInit {
     }
     const formValue = this.locationForm.value;
 
-    // This object structure is common to both request types
     const baseRequestData = {
       ...formValue,
       tags: formValue.tags.map((name: string) => ({ name })),
     };
 
     if (this.isEditMode) {
-      // If editing, add the ID to create an UpdateLocationRequest
       const updateRequest = { ...baseRequestData, id: this.data.location.id };
       this.dialogRef.close(updateRequest);
     } else {
-      // Otherwise, it's a CreateLocationRequest
       this.dialogRef.close(baseRequestData);
     }
   }

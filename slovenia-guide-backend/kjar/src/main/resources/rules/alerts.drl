@@ -28,7 +28,7 @@ rule "Alert for required equipment"
     when
         ItineraryItem($location: location, $location.requiredEquipment != null && !$location.requiredEquipment.isEmpty())
     then
-        String message = "Za posetu lokaciji '" + $location.getName() + "' preporučuje se: " + $location.getRequiredEquipment();
+        String message = "Preporučuje se: " + $location.getRequiredEquipment();
         if (uniqueAlerts.add(message)) {
             alerts.add(new Alert(message, null, $location.getId()));
         }

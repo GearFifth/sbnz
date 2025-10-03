@@ -11,11 +11,12 @@ import { DayTripService } from '../../services/day-trip.service';
 import { LocationService } from '../../../admin/services/location.service';
 import { DayTripSuggestion } from '../../../../core/models/day-trip.model';
 import { Location } from '../../../../core/models/location.model';
+import { SelectComboboxComponent } from '../../../../shared/components/select-combobox/select-combobox.component';
 
 @Component({
   selector: 'app-day-trip-suggester',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, MaterialModule],
+  imports: [CommonModule, ReactiveFormsModule, SelectComboboxComponent],
   templateUrl: './day-trip-suggester.component.html',
 })
 export class DayTripSuggesterComponent implements OnInit {
@@ -48,7 +49,6 @@ export class DayTripSuggesterComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    // Učitavamo sve lokacije da bismo popunili padajuće menije
     this.locationService.getLocations().subscribe((locations) => {
       this.allLocations.set(locations);
     });

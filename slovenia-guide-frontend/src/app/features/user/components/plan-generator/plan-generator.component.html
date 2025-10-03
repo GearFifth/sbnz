@@ -1,19 +1,17 @@
 @if (plan(); as generatedPlan) {
-<!-- ITINERARY DISPLAY VIEW -->
 <div
   class="bg-white/90 dark:bg-gray-800/95 backdrop-blur-sm shadow-2xl rounded-2xl p-8 w-full max-w-4xl mx-auto dark:text-white"
 >
   <div class="flex justify-between items-start mb-6">
     <div>
       <h2 class="text-3xl font-bold">Your Custom Slovenia Itinerary</h2>
-      <p class="text-lg text-teal-600 dark:text-teal-400 font-semibold mt-1">
+      <p class="text-lg text-teal-600 dark:text-teal-400 font-medium mt-1">
         {{ generatedPlan.tripType }}
       </p>
     </div>
     <button class="btn-secondary" (click)="startOver()">Start Over</button>
   </div>
 
-  <!-- Prikaz samo OPŠTIH upozorenja na vrhu -->
   @if(generalAlerts().length > 0) {
   <div
     class="mb-6 p-4 bg-yellow-100 dark:bg-yellow-900/50 border-l-4 border-yellow-500 text-yellow-800 dark:text-yellow-200 rounded-r-lg"
@@ -27,48 +25,18 @@
   </div>
   }
 
-  <!-- Itinerary by Day -->
   <div class="space-y-8">
     @for(day of planByDay(); track day.day) {
     <div>
-      <h3 class="text-2xl font-semibold border-b-2 border-teal-500 pb-2 mb-4">
+      <h3 class="text-2xl font-medium border-b-2 border-teal-500 pb-2 mb-4">
         Day {{ day.day }}
       </h3>
-      <div class="space-y-4">
+      <div class="flex flex-col gap-4">
         @for(item of day.items; track item.location.id) {
-        <div class="p-4 bg-gray-50 dark:bg-gray-700/60 rounded-lg shadow-sm">
-          <p class="font-bold text-lg text-teal-700 dark:text-teal-300">
-            {{ item.location.name }}
-          </p>
-          <p class="text-gray-700 dark:text-gray-300 mt-1">
-            {{ item.proposedActivity }}
-          </p>
-          <p class="text-sm text-gray-600 dark:text-gray-400 mt-2">
-            {{ item.location.region }} - {{ item.location.type }}
-          </p>
-
-          <div class="mt-3 flex flex-wrap gap-2">
-            @for(tag of item.location.tags; track tag.id) {
-            <span
-              class="text-xs font-medium px-2 py-1 bg-teal-100 text-teal-800 dark:bg-teal-900/70 dark:text-teal-200 rounded-full"
-            >
-              {{ tag.name }}
-            </span>
-            }
-          </div>
-
-          <!-- Prikaz upozorenja specifičnih za ovu lokaciju -->
-          @if(locationAlertsMap().has(item.location.id)) {
-          <div
-            class="mt-3 p-3 bg-yellow-50 dark:bg-yellow-900/40 border-l-4 border-yellow-400 text-yellow-700 dark:text-yellow-200 rounded-r-md"
-          >
-            @for(alert of locationAlertsMap().get(item.location.id); track
-            $index) {
-            <p class="text-sm">{{ alert.message }}</p>
-            }
-          </div>
-          }
-        </div>
+        <app-itinerary-item-card
+          [item]="item"
+          [alerts]="locationAlertsMap().get(item.location.id)"
+        ></app-itinerary-item-card>
         }
       </div>
     </div>
@@ -76,7 +44,6 @@
   </div>
 </div>
 } @else {
-<!-- PREFERENCE FORM VIEW -->
 <div
   class="bg-white/80 dark:bg-gray-800/90 backdrop-blur-sm shadow-2xl rounded-2xl p-8 w-full max-w-3xl mx-auto dark:text-white"
 >
@@ -95,41 +62,45 @@
       </div>
       <div class="form-field">
         <label class="form-label">Month of Travel</label>
-        <select class="form-input" formControlName="travelMonth">
-          @for(month of months; track month.value) {
-          <option [value]="month.value">{{ month.name }}</option>
-          }
-        </select>
+        <app-select-combobox
+          formControlName="travelMonth"
+          [options]="months"
+          optionValueKey="value"
+          optionDisplayKey="name"
+          placeholder="Select a month..."
+        ></app-select-combobox>
       </div>
       <div class="form-field">
         <label class="form-label">Budget</label>
-        <select class="form-input" formControlName="budget">
-          <option value="LOW">Low</option>
-          <option value="MEDIUM">Medium</option>
-          <option value="HIGH">High</option>
-        </select>
+        <app-select-combobox
+          formControlName="budget"
+          [options]="budgetOptions"
+          optionValueKey="value"
+          optionDisplayKey="name"
+          placeholder="Select a budget..."
+        ></app-select-combobox>
       </div>
       <div class="form-field">
         <label class="form-label">Mode of Transport</label>
-        <select class="form-input" formControlName="transport">
-          <option value="CAR">Car</option>
-          <option value="PUBLIC_TRANSPORT">Public Transport</option>
-        </select>
+        <app-select-combobox
+          formControlName="transport"
+          [options]="transportOptions"
+          optionValueKey="value"
+          optionDisplayKey="name"
+          placeholder="Select transport..."
+        ></app-select-combobox>
       </div>
       <div class="form-field col-span-1 md:col-span-2">
         <label class="form-label">Physical Fitness Level</label>
-        <select class="form-input" formControlName="fitnessLevel">
-          <option value="LOW">Low (Relaxed pace, minimal walking)</option>
-          <option value="MEDIUM">
-            Medium (Comfortable with walking/light hiking)
-          </option>
-          <option value="HIGH">
-            High (Ready for demanding hikes & activities)
-          </option>
-        </select>
+        <app-select-combobox
+          formControlName="fitnessLevel"
+          [options]="fitnessOptions"
+          optionValueKey="value"
+          optionDisplayKey="name"
+          placeholder="Select your fitness level..."
+        ></app-select-combobox>
       </div>
 
-      <!-- Combobox for Interests -->
       <div class="form-field col-span-1 md:col-span-2">
         <label class="form-label">Interests (select at least one)</label>
         <div class="relative">
@@ -167,7 +138,6 @@
               (blur)="isDropdownVisible.set(false)"
             />
           </div>
-
           @if(isDropdownVisible() && filteredInterests().length > 0) {
           <div
             class="absolute z-10 w-full mt-1 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-lg max-h-60 overflow-y-auto"

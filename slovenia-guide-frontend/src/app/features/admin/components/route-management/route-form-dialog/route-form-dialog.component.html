@@ -7,22 +7,26 @@
     <form [formGroup]="routeForm" class="flex flex-col gap-4">
       <div class="form-field">
         <label class="form-label">From Location</label>
-        <select class="form-input" formControlName="locationAId">
-          <option disabled value="">Select a starting location...</option>
-          @for(location of locations(); track location.id) {
-          <option [value]="location.id">{{ location.name }}</option>
-          }
-        </select>
+        <app-select-combobox
+          formControlName="locationAId"
+          [options]="locations()"
+          optionValueKey="id"
+          optionDisplayKey="name"
+          placeholder="Select a starting location..."
+          [sortable]="true"
+        ></app-select-combobox>
       </div>
 
       <div class="form-field">
         <label class="form-label">To Location</label>
-        <select class="form-input" formControlName="locationBId">
-          <option disabled value="">Select a destination...</option>
-          @for(location of locations(); track location.id) {
-          <option [value]="location.id">{{ location.name }}</option>
-          }
-        </select>
+        <app-select-combobox
+          formControlName="locationBId"
+          [options]="locations()"
+          optionValueKey="id"
+          optionDisplayKey="name"
+          placeholder="Select a destination..."
+          [sortable]="true"
+        ></app-select-combobox>
       </div>
 
       <div class="form-field">

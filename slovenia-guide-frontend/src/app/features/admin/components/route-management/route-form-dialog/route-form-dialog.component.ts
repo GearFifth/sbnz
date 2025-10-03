@@ -10,11 +10,12 @@ import { CommonModule } from '@angular/common';
 import { LocationService } from '../../../services/location.service';
 import { Location } from '../../../../../core/models/location.model';
 import { Route } from '../../../../../core/models/route.model';
+import { SelectComboboxComponent } from '../../../../../shared/components/select-combobox/select-combobox.component';
 
 @Component({
   selector: 'app-route-form-dialog',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, SelectComboboxComponent],
   templateUrl: './route-form-dialog.component.html',
 })
 export class RouteFormDialogComponent implements OnInit {
@@ -63,13 +64,12 @@ export class RouteFormDialogComponent implements OnInit {
 
     if (this.isEditMode) {
       this.dialogRef.close({
-        id: this.data.route.id,
         travelTimeMinutes: this.routeForm.value.travelTimeMinutes,
       });
     } else {
       if (this.routeForm.value.locationAId === this.routeForm.value.locationBId)
         return;
-      this.dialogRef.close(this.routeForm.value);
+      this.dialogRef.close(this.routeForm.getRawValue());
     }
   }
 

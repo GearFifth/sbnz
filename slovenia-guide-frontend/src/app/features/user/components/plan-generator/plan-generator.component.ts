@@ -24,11 +24,18 @@ import {
 } from '../../../../core/models/travel-plan.model';
 import { Tag } from '../../../../core/models/location.model';
 import { TagService } from '../../services/tag.service';
+import { SelectComboboxComponent } from '../../../../shared/components/select-combobox/select-combobox.component';
+import { ItineraryItemCardComponent } from './itinerary-item-card/itinerary-item-card.component';
 
 @Component({
   selector: 'app-plan-generator',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, MaterialModule],
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    SelectComboboxComponent,
+    ItineraryItemCardComponent,
+  ],
   templateUrl: './plan-generator.component.html',
 })
 export class PlanGeneratorComponent implements OnInit, OnDestroy {
@@ -43,6 +50,7 @@ export class PlanGeneratorComponent implements OnInit, OnDestroy {
   isDropdownVisible = signal(false);
   private interestFilterSignal = signal<string>('');
 
+  // Podaci za novi combobox
   readonly months = [
     { value: 1, name: 'January' },
     { value: 2, name: 'February' },
@@ -57,18 +65,30 @@ export class PlanGeneratorComponent implements OnInit, OnDestroy {
     { value: 11, name: 'November' },
     { value: 12, name: 'December' },
   ];
+  readonly budgetOptions = [
+    { value: 'LOW', name: 'Low' },
+    { value: 'MEDIUM', name: 'Medium' },
+    { value: 'HIGH', name: 'High' },
+  ];
+  readonly transportOptions = [
+    { value: 'CAR', name: 'Car' },
+    { value: 'PUBLIC_TRANSPORT', name: 'Public Transport' },
+  ];
+  readonly fitnessOptions = [
+    { value: 'LOW', name: 'Low (Relaxed pace, minimal walking)' },
+    { value: 'MEDIUM', name: 'Medium (Comfortable with walking/light hiking)' },
+    { value: 'HIGH', name: 'High (Ready for demanding hikes & activities)' },
+  ];
 
   plan = signal<TravelPlanResponse | null>(null);
 
   generalAlerts = computed(
     () => this.plan()?.alerts.filter((a) => !a.locationId) || []
   );
-
   locationAlertsMap = computed(() => {
     const alertsMap = new Map<string, Alert[]>();
     const p = this.plan();
     if (!p) return alertsMap;
-
     p.alerts.forEach((alert) => {
       if (alert.locationId) {
         const existing = alertsMap.get(alert.locationId) || [];
@@ -126,7 +146,6 @@ export class PlanGeneratorComponent implements OnInit, OnDestroy {
     this.tagService.getTags().subscribe((tags) => {
       this.allInterests.set(tags);
     });
-
     this.interestInput.valueChanges.subscribe((value) => {
       this.interestFilterSignal.set(value || '');
     });
@@ -145,9 +164,7 @@ export class PlanGeneratorComponent implements OnInit, OnDestroy {
   }
 
   generatePlan(): void {
-    if (this.preferencesForm.invalid) {
-      return;
-    }
+    if (this.preferencesForm.invalid) return;
     this.travelPlanService
       .generatePlan(this.preferencesForm.value)
       .subscribe((response) => {
@@ -183,7 +200,6 @@ export class PlanGeneratorComponent implements OnInit, OnDestroy {
               const uniqueNewAlerts = newAlerts.filter(
                 (a) => !existingAlertMessages.has(a.message)
               );
-
               if (uniqueNewAlerts.length > 0) {
                 return {
                   ...currentPlan,

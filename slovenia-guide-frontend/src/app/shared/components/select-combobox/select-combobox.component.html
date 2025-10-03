@@ -1,0 +1,87 @@
+<div class="relative w-full">
+  <input
+    type="text"
+    [placeholder]="placeholder"
+    class="placeholder-gray-500 w-full pr-10 text-gray-800 dark:text-white border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-teal-500 focus:border-transparent transition-colors form-input"
+    [ngClass]="{
+      'cursor-pointer': !isDisabled,
+      'cursor-not-allowed bg-gray-100 dark:bg-gray-800 text-gray-500':
+        isDisabled,
+      'px-4 py-2 text-sm': size === 'sm',
+      'px-4 py-2 text-base': size === 'md',
+      'px-4 py-3 text-lg': size === 'lg'
+    }"
+    [value]="displayValue"
+    (click)="toggleDropdown()"
+    readonly
+    [disabled]="isDisabled"
+  />
+
+  <button
+    (click)="toggleDropdown()"
+    type="button"
+    class="absolute inset-y-0 right-0 flex items-center"
+    [ngClass]="{
+      'cursor-pointer': !isDisabled,
+      'cursor-not-allowed': isDisabled,
+      'pr-2': size === 'sm',
+      'pr-3': size === 'md',
+      'pr-4': size === 'lg'
+    }"
+    [disabled]="isDisabled"
+  >
+    @if (!isDisabled) {
+    <svg
+      [ngClass]="{
+        'text-gray-500': !isDisabled,
+        'text-gray-400': isDisabled,
+        'w-4 h-4': size === 'sm' || size === 'md',
+        'w-5 h-5': size === 'lg'
+      }"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="2"
+      viewBox="0 0 24 24"
+    >
+      <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+    </svg>
+    }
+  </button>
+
+  @if (isOpen && options.length > 0) {
+  <div
+    (mousedown)="$event.preventDefault()"
+    class="absolute z-10 w-full overflow-auto bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg shadow-xl max-h-60"
+    (animationend)="onAnimationEnd()"
+    [class.mt-1]="!openUpward"
+    [class.bottom-full]="openUpward"
+    [class.mb-1]="openUpward"
+    [class.animate-fade-in-down]="!isClosing && !openUpward"
+    [class.animate-fade-out-up]="isClosing && !openUpward"
+    [class.animate-fade-in-up]="!isClosing && openUpward"
+    [class.animate-fade-out-down]="isClosing && openUpward"
+  >
+    <ul>
+      @for (option of sortedOptions; track $index) {
+      <li
+        (click)="selectOption(option)"
+        class="px-4 py-2 text-gray-800 dark:text-gray-200 cursor-pointer hover:bg-teal-500 hover:text-white transition-colors duration-150"
+      >
+        <ng-container *ngIf="optionTemplate; else defaultOptionTemplate">
+          <ng-container
+            [ngTemplateOutlet]="optionTemplate"
+            [ngTemplateOutletContext]="{ $implicit: option }"
+          ></ng-container>
+        </ng-container>
+        <ng-template #defaultOptionTemplate>
+          <span>{{ option[optionDisplayKey] }}</span>
+          <span *ngIf="optionDetailKey" class="ml-2 text-gray-400">{{
+            option[optionDetailKey]
+          }}</span>
+        </ng-template>
+      </li>
+      }
+    </ul>
+  </div>
+  }
+</div>
