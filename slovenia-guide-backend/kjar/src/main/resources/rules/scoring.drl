@@ -6,27 +6,37 @@ import com.ftn.sbnz.model.models.Tag;
 import com.ftn.sbnz.model.dtos.Recommendation;
 import com.ftn.sbnz.model.enums.FitnessLevel;
 import java.util.List;
+import java.util.Set;
 
 query "getRecommendations"
     $rec: Recommendation()
 end
 
+rule "Create baseline recommendation for all valid locations"
+    agenda-group "scoring"
+    salience -10
+    when
+        $location: Location()
+        not Recommendation(location == $location)
+    then
+        Recommendation rec = new Recommendation($location, 10.0, "General option.");
+        insert(rec);
+        System.out.println("Kreirana OSNOVNA preporuka za: " + $location.getName() + " sa skorom 10.");
+end
 
-rule "Reward locations based on interests"
+rule "Reward recommendations that match user interests"
     agenda-group "scoring"
     salience 10
     when
         $prefs: TravelPreferences($interests: interests)
-
-        $location: Location($tags: tags)
-
-        not Recommendation(location == $location)
-
+        $rec: Recommendation($location: location, $tags: location.getTags())
         exists Tag(name memberOf $interests) from $tags
     then
-        Recommendation recommendation = new Recommendation($location, 10.0, "Poklapa se sa vašim interesovanjima.");
-        insert(recommendation);
-        System.out.println("Kreirana preporuka za: " + $location.getName() + " sa početnim skorom 10.");
+        modify($rec) {
+            setScore($rec.getScore() + 10),
+            setReason("Matches user interest.")
+        }
+        System.out.println("Povećan skor za lokaciju: " + $location.getName() + " zbog poklapanja interesa.");
 end
 
 
@@ -133,18 +143,37 @@ rule "Promote the Postojna + Predjama Castle package"
         System.out.println("Povećan skor za Postojnu i Predjamski grad kao paket.");
 end
 
-rule "Promote Ljubljana as a base for longer trips"
+rule "Promote Ljubljana for urban interest on longer trips"
     agenda-group "scoring"
     no-loop true
     when
-        TravelPreferences(numberOfDays >= 3)
+        TravelPreferences(numberOfDays >= 3, interests contains "grad")
         $rec: Recommendation(location.name == "Ljubljana", $score: score)
     then
         modify($rec) {
             setScore($score + 15),
-            setReason($rec.getReason() + " Bonus kao odlična baza za duže putovanje.")
+            setReason($rec.getReason() + " Bonus kao odlična gradska baza za duže putovanje.")
         }
-        System.out.println("Povećan skor za Ljubljanu (baza). Novi skor: " + $rec.getScore());
+        System.out.println("Povećan skor za Ljubljanu (jer je gradska baza). Novi skor: " + $rec.getScore());
+end
+
+rule "Promote Ljubljana as a central hub for multi-region trips"
+    agenda-group "scoring"
+    no-loop true
+    when
+        TravelPreferences(numberOfDays >= 3)
+        accumulate(
+            Recommendation(score > 10, $region: location.getRegion());
+            $regions: collectSet($region)
+        )
+        Set(size >= 2) from $regions
+        $rec: Recommendation(location.name == "Ljubljana", $score: score)
+    then
+        modify($rec) {
+            setScore($score + 20),
+            setReason($rec.getReason() + " Bonus kao centralno čvorište za putovanje kroz više regiona.")
+        }
+        System.out.println("Povećan skor za Ljubljanu (jer je centralno čvorište). Novi skor: " + $rec.getScore());
 end
 
 rule "Synergy between Soca Valley and Kobarid Museum - Advanced"

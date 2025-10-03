@@ -1,0 +1,170 @@
+@if (plan(); as generatedPlan) {
+<div
+  class="bg-white/90 dark:bg-gray-800/95 backdrop-blur-sm shadow-2xl rounded-2xl p-8 w-full max-w-4xl mx-auto dark:text-white"
+>
+  <div class="flex justify-between items-start mb-6">
+    <div>
+      <h2 class="text-3xl font-bold">Your Custom Slovenia Itinerary</h2>
+      <p class="text-lg text-teal-600 dark:text-teal-400 font-medium mt-1">
+        {{ generatedPlan.tripType }}
+      </p>
+    </div>
+    <button class="btn-secondary" (click)="startOver()">Start Over</button>
+  </div>
+
+  @if(generalAlerts().length > 0) {
+  <div
+    class="mb-6 p-4 bg-yellow-100 dark:bg-yellow-900/50 border-l-4 border-yellow-500 text-yellow-800 dark:text-yellow-200 rounded-r-lg"
+  >
+    <h3 class="font-bold">Important Notes</h3>
+    <ul class="list-disc list-inside mt-2 space-y-1">
+      @for(alert of generalAlerts(); track $index) {
+      <li>{{ alert.message }}</li>
+      }
+    </ul>
+  </div>
+  }
+
+  <div class="space-y-8">
+    @for(day of planByDay(); track day.day) {
+    <div>
+      <h3 class="text-2xl font-medium border-b-2 border-teal-500 pb-2 mb-4">
+        Day {{ day.day }}
+      </h3>
+      <div class="flex flex-col gap-4">
+        @for(item of day.items; track item.location.id) {
+        <app-itinerary-item-card
+          [item]="item"
+          [alerts]="locationAlertsMap().get(item.location.id)"
+        ></app-itinerary-item-card>
+        }
+      </div>
+    </div>
+    }
+  </div>
+</div>
+} @else {
+<div
+  class="bg-white/80 dark:bg-gray-800/90 backdrop-blur-sm shadow-2xl rounded-2xl p-8 w-full max-w-3xl mx-auto dark:text-white"
+>
+  <h2 class="text-3xl font-bold text-center mb-6">
+    Create Your Custom Slovenia Trip
+  </h2>
+  <form [formGroup]="preferencesForm" (ngSubmit)="generatePlan()">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+      <div class="form-field">
+        <label class="form-label">Number of Days</label>
+        <input
+          class="form-input"
+          type="number"
+          formControlName="numberOfDays"
+        />
+      </div>
+      <div class="form-field">
+        <label class="form-label">Month of Travel</label>
+        <app-select-combobox
+          formControlName="travelMonth"
+          [options]="months"
+          optionValueKey="value"
+          optionDisplayKey="name"
+          placeholder="Select a month..."
+        ></app-select-combobox>
+      </div>
+      <div class="form-field">
+        <label class="form-label">Budget</label>
+        <app-select-combobox
+          formControlName="budget"
+          [options]="budgetOptions"
+          optionValueKey="value"
+          optionDisplayKey="name"
+          placeholder="Select a budget..."
+        ></app-select-combobox>
+      </div>
+      <div class="form-field">
+        <label class="form-label">Mode of Transport</label>
+        <app-select-combobox
+          formControlName="transport"
+          [options]="transportOptions"
+          optionValueKey="value"
+          optionDisplayKey="name"
+          placeholder="Select transport..."
+        ></app-select-combobox>
+      </div>
+      <div class="form-field col-span-1 md:col-span-2">
+        <label class="form-label">Physical Fitness Level</label>
+        <app-select-combobox
+          formControlName="fitnessLevel"
+          [options]="fitnessOptions"
+          optionValueKey="value"
+          optionDisplayKey="name"
+          placeholder="Select your fitness level..."
+        ></app-select-combobox>
+      </div>
+
+      <div class="form-field col-span-1 md:col-span-2">
+        <label class="form-label">Interests (select at least one)</label>
+        <div class="relative">
+          <div class="tag-container">
+            @for(interest of interestsFormArray.controls; track $index) {
+            <span class="tag-bubble">
+              {{ interest.value }}
+              <button
+                type="button"
+                class="tag-remove-btn"
+                (click)="removeInterest($index)"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="h-4 w-4"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                </svg>
+              </button>
+            </span>
+            }
+            <input
+              class="tag-input"
+              placeholder="Type to add an interest..."
+              [formControl]="interestInput"
+              (focus)="isDropdownVisible.set(true)"
+              (blur)="isDropdownVisible.set(false)"
+            />
+          </div>
+          @if(isDropdownVisible() && filteredInterests().length > 0) {
+          <div
+            class="absolute z-10 w-full mt-1 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-lg max-h-60 overflow-y-auto"
+          >
+            @for(interest of filteredInterests(); track interest.id) {
+            <div
+              class="px-4 py-2 text-gray-800 dark:text-gray-200 cursor-pointer hover:bg-teal-500 hover:text-white transition-colors duration-150"
+              (mousedown)="addInterest(interest.name)"
+            >
+              <span class="capitalize">{{ interest.name }}</span>
+            </div>
+            }
+          </div>
+          }
+        </div>
+      </div>
+    </div>
+
+    <div class="mt-8">
+      <button
+        type="submit"
+        class="btn-primary w-full"
+        [disabled]="preferencesForm.invalid"
+      >
+        Generate My Plan
+      </button>
+    </div>
+  </form>
+</div>
+}

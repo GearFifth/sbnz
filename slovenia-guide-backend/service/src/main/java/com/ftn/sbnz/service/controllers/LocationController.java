@@ -1,9 +1,11 @@
 package com.ftn.sbnz.service.controllers;
 
 import com.ftn.sbnz.model.dtos.location.CreateLocationRequest;
+import com.ftn.sbnz.model.dtos.location.UpdateLocationRequest;
 import com.ftn.sbnz.model.models.Location;
 import com.ftn.sbnz.service.services.ILocationService;
 import lombok.RequiredArgsConstructor;
+import org.hibernate.sql.Update;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -34,5 +36,19 @@ public class LocationController {
     @GetMapping("/{id}")
     public ResponseEntity<Location> getById(@PathVariable UUID id) {
         return ResponseEntity.ok(locationService.findById(id));
+    }
+
+    @PutMapping("/{id}")
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public ResponseEntity<Location> update(@PathVariable UUID id, @RequestBody UpdateLocationRequest request) {
+        Location updatedLocation = locationService.update(id, request);
+        return ResponseEntity.ok(updatedLocation);
+    }
+
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public ResponseEntity<Void> delete(@PathVariable UUID id) {
+        locationService.delete(id);
+        return ResponseEntity.noContent().build();
     }
 }

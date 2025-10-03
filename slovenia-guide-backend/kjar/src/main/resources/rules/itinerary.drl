@@ -4,6 +4,7 @@ import com.ftn.sbnz.model.dtos.TravelPreferences;
 import com.ftn.sbnz.model.models.Location;
 import com.ftn.sbnz.model.models.Route;
 import com.ftn.sbnz.model.dtos.ItineraryItem;
+import com.ftn.sbnz.model.dtos.Recommendation;
 import java.util.List;
 import java.util.ArrayList;
 
@@ -35,19 +36,20 @@ rule "Initialize Day Planner and Daily Plans"
         }
 end
 
-rule "Assign top-rated location to Day 1"
+rule "Assign BEST recommendation to Day 1"
     agenda-group "itinerary"
     salience 50
     when
-        $location: Location()
         $plan: DailyPlan(day == 1, locations.size == 0)
+        $rec: Recommendation($location: location)
+        not Recommendation(score > $rec.getScore())
     then
         modify($plan) {
             getLocations().add($location),
             setTotalTime($plan.getTotalTime() + $location.getVisitTimeMinutes())
         }
-        delete($location);
-        System.out.println("Dan 1: Dodata prva lokacija " + $location.getName());
+        delete($rec);
+        System.out.println("Dan 1: Dodata PRVA NAJBOLJA lokacija " + $location.getName());
 end
 
 rule "Iteratively group nearby locations in the same day"
@@ -56,11 +58,9 @@ rule "Iteratively group nearby locations in the same day"
     salience 10
     when
         $plan: DailyPlan($day: day, $locations: locations, locations.size > 0, $totalTime: totalTime)
-
         $existingLocation: Location() from $locations
 
-        $newLocation: Location()
-
+        $rec: Recommendation($newLocation: location)
         ( Route(locationA == $existingLocation, locationB == $newLocation, $time: travelTimeMinutes < 45) or
           Route(locationA == $newLocation, locationB == $existingLocation, $time: travelTimeMinutes < 45) )
 
@@ -70,29 +70,30 @@ rule "Iteratively group nearby locations in the same day"
             getLocations().add($newLocation),
             setTotalTime($plan.getTotalTime() + $newLocation.getVisitTimeMinutes() + $time)
         }
-        delete($newLocation);
+        delete($rec);
         System.out.println("Dan " + $day + ": Iterativno dodata bliska lokacija " + $newLocation.getName());
 end
 
-rule "Assign next best location to a new day"
+rule "Assign NEXT BEST recommendation to a new day"
     agenda-group "itinerary"
     when
         $plan: DailyPlan(locations.size == 0)
-        $location: Location()
+        $rec: Recommendation($location: location)
+        not Recommendation(score > $rec.getScore())
     then
         modify($plan) {
             getLocations().add($location),
             setTotalTime($plan.getTotalTime() + $location.getVisitTimeMinutes())
         }
-        delete($location);
-        System.out.println("Dan " + $plan.getDay() + ": Početak sa lokacijom " + $location.getName());
+        delete($rec);
+        System.out.println("Dan " + $plan.getDay() + ": Početak sa SLEDEĆOM NAJBOLJOM lokacijom " + $location.getName());
 end
 
 rule "Signal that planning is finished"
     agenda-group "itinerary"
     salience -50
     when
-        not Location()
+        not Recommendation()
         not PlanningFinished()
     then
         insert(new PlanningFinished());
@@ -115,8 +116,8 @@ rule "Cleanup unassigned locations"
     agenda-group "itinerary"
     salience -90
     when
-        $location: Location()
+        $rec: Recommendation()
     then
-        delete($location);
-        System.out.println("Čišćenje neraspoređene lokacije: " + $location.getName());
+        delete($rec);
+        System.out.println("Čišćenje neraspoređene preporuke: " + $rec.getLocation().getName());
 end

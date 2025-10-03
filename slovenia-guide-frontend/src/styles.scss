@@ -1,1 +1,143 @@
-/* You can add global styles to this file, and also import other style files */
+@use "@angular/material" as mat;
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+@custom-variant dark (&:where(.dark, .dark *));
+
+@include mat.core();
+
+// 2. Custom CSS Variables and Global Styles
+:root {
+  --primary-color: #2c5282; /* A deep blue like Lake Bohinj */
+  --primary-hover-color: #2a4365;
+  --secondary-color: #2f855a; /* A lush green like Triglav Park */
+  --background-image-light: url("https://images.unsplash.com/photo-1559827291-72ee739d0d95?q=80&w=2564&auto=format&fit=crop");
+  --background-image-dark: url("https://images.unsplash.com/photo-1617263590934-e4c1b5a93902?q=80&w=2670&auto=format&fit=crop");
+}
+
+html,
+body {
+  height: 100%;
+  margin: 0;
+  font-family: Roboto, "Helvetica Neue", sans-serif;
+}
+
+// 3. Custom Component Styles
+.main-container {
+  min-height: 100vh;
+  background-image: var(--background-image-light);
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+  transition: background-image 0.5s ease-in-out;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(2px);
+}
+
+.dark .main-container {
+  background-image: var(--background-image-dark);
+}
+
+.content-card {
+  @apply bg-white/80 dark:bg-gray-800/90 backdrop-blur-sm shadow-2xl rounded-2xl p-8 w-full max-w-md;
+}
+
+.app-container {
+  min-height: 100vh;
+  background-image: var(--background-image-light);
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+  transition: background-image 0.5s ease-in-out;
+}
+
+.dark .app-container {
+  background-image: var(--background-image-dark);
+}
+
+// 4. Angular Material Theming
+
+// Custom palette based on the teal theme.
+$slovenia-guide-primary: mat.define-palette(mat.$teal-palette, 600, 400, 800);
+$slovenia-guide-accent: mat.define-palette(
+  mat.$blue-gray-palette,
+  A200,
+  A100,
+  A400
+);
+$slovenia-guide-warn: mat.define-palette(mat.$red-palette);
+
+// The light theme object.
+$slovenia-guide-light-theme: mat.define-light-theme(
+  (
+    color: (
+      primary: $slovenia-guide-primary,
+      accent: $slovenia-guide-accent,
+      warn: $slovenia-guide-warn,
+    ),
+  )
+);
+
+// The dark theme object.
+$slovenia-guide-dark-theme: mat.define-dark-theme(
+  (
+    color: (
+      primary: $slovenia-guide-primary,
+      accent: $slovenia-guide-accent,
+      warn: $slovenia-guide-warn,
+    ),
+  )
+);
+
+// Apply the color styles for the light theme by default.
+@include mat.all-component-colors($slovenia-guide-light-theme);
+
+// Apply the color styles for the dark theme only when the .dark class is present.
+.dark {
+  @include mat.all-component-colors($slovenia-guide-dark-theme);
+}
+
+// 5. Custom Reusable Form Component Styles
+.form-field {
+  @apply flex flex-col gap-1 w-full;
+}
+
+.form-label {
+  @apply block text-sm font-medium text-gray-600 dark:text-gray-300;
+}
+
+.form-input {
+  @apply w-full px-3 py-2 bg-gray-50/70 dark:bg-gray-900/70 border border-gray-300 dark:border-gray-600 rounded-md text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-teal-500 dark:focus:ring-teal-400 focus:border-transparent transition;
+}
+
+// Button Styles
+.btn {
+  @apply px-4 py-2 rounded-md font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition-colors disabled:cursor-not-allowed disabled:opacity-50;
+}
+
+.btn-primary {
+  @apply btn bg-teal-600 hover:bg-teal-700 text-white focus:ring-teal-500;
+}
+
+.btn-secondary {
+  @apply btn bg-transparent hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 focus:ring-teal-500;
+}
+
+// Tag Bubble Styles
+.tag-container {
+  @apply flex flex-wrap items-center gap-2 p-2 rounded-md border border-gray-300 dark:border-gray-600 bg-gray-50/70 dark:bg-gray-900/70;
+}
+
+.tag-bubble {
+  @apply flex items-center gap-2 bg-teal-100 dark:bg-teal-900/60 text-teal-800 dark:text-teal-200 text-sm font-medium px-2 py-1 rounded;
+}
+
+.tag-remove-btn {
+  @apply text-teal-600 dark:text-teal-300 hover:text-teal-800 dark:hover:text-teal-100 cursor-pointer;
+}
+
+.tag-input {
+  @apply flex-grow bg-transparent border-none focus:ring-0 p-1 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500;
+}

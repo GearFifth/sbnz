@@ -1,6 +1,7 @@
 package com.ftn.sbnz.service.services.implementations;
 
 import com.ftn.sbnz.model.dtos.location.CreateLocationRequest;
+import com.ftn.sbnz.model.dtos.location.UpdateLocationRequest;
 import com.ftn.sbnz.model.models.Location;
 import com.ftn.sbnz.model.models.Tag;
 import com.ftn.sbnz.service.exceptions.EntityNotFoundException;
@@ -11,6 +12,7 @@ import jakarta.persistence.EntityExistsException;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.UUID;
@@ -25,6 +27,7 @@ public class LocationService implements ILocationService {
     private final ModelMapper mapper;
 
     @Override
+    @Transactional
     public Location create(CreateLocationRequest dto) {
         if (locationRepository.findByName(dto.getName()).isPresent()) {
             throw new EntityExistsException("Location with name '" + dto.getName() + "' already exists.");
@@ -32,9 +35,9 @@ public class LocationService implements ILocationService {
 
         Location location = mapper.map(dto, Location.class);
 
-        List<Tag> tags = dto.getTags().stream().map(tagName ->
-                tagRepository.findByName(tagName)
-                        .orElseGet(() -> tagRepository.save(new Tag(null, tagName)))
+        List<Tag> tags = dto.getTags().stream().map(tagDto ->
+                tagRepository.findByName(tagDto.getName())
+                        .orElseGet(() -> tagRepository.save(new Tag(null, tagDto.getName())))
         ).collect(Collectors.toList());
         location.setTags(tags);
 
@@ -49,5 +52,29 @@ public class LocationService implements ILocationService {
     @Override
     public List<Location> findAll() {
         return locationRepository.findAll();
+    }
+
+    @Override
+    @Transactional
+    public Location update(UUID id, UpdateLocationRequest dto) {
+        Location existingLocation = locationRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Location with ID " + id + " not found."));
+
+        mapper.map(dto, existingLocation);
+
+        List<Tag> tags = dto.getTags().stream().map(tagDto ->
+                tagRepository.findByName(tagDto.getName())
+                        .orElseGet(() -> tagRepository.save(new Tag(null, tagDto.getName())))
+        ).collect(Collectors.toList());
+        existingLocation.setTags(tags);
+
+        return locationRepository.save(existingLocation);
+    }
+
+    @Override
+    @Transactional
+    public void delete(UUID id) {
+        findById(id);
+        locationRepository.deleteById(id);
     }
 }

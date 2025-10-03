@@ -27,6 +27,6 @@ rule "React to Vrsic Pass Closure on existing plans"
         exists ItineraryItem(location.name == "Triglavski narodni park" || location.name == "Kranjska Gora") from $itinerary
     then
         String message = "Kritično upozorenje: Putni prelaz Vršič je zatvoren, vaš plan za posetu Gorenjskoj je ugrožen!";
-        insert(new Alert(message, $planId));
+        insert(new Alert(message, $planId, null));
         System.out.println("====== Ubačeno kritično upozorenje (CEP) za plan " + $planId + " ======");
 end

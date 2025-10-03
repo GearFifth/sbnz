@@ -1,0 +1,67 @@
+<div
+  class="bg-white/80 dark:bg-gray-800/90 backdrop-blur-sm shadow-2xl rounded-2xl p-8 w-full max-w-4xl mx-auto dark:text-white"
+>
+  <div class="flex justify-between items-center mb-6">
+    <h2 class="text-3xl font-bold">Manage Rule Parameters</h2>
+    <button mat-flat-button color="primary" (click)="openFormDialog()">
+      <mat-icon>add</mat-icon>
+      Add New Parameter
+    </button>
+  </div>
+
+  @if (!parameters().length) {
+  <div class="text-center py-16 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+    <p class="text-gray-500 dark:text-gray-400">
+      No parameters found. Add one to get started!
+    </p>
+  </div>
+  } @else {
+  <div class="overflow-x-auto bg-white dark:bg-gray-800 rounded-lg shadow">
+    <table
+      class="min-w-full text-sm text-left text-gray-500 dark:text-gray-400"
+    >
+      <thead
+        class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400"
+      >
+        <tr>
+          <th scope="col" class="px-6 py-3">Parameter Key</th>
+          <th scope="col" class="px-6 py-3">Parameter Value</th>
+          <th scope="col" class="px-6 py-3 text-right">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (param of parameters(); track param.paramKey) {
+        <tr
+          class="border-b dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600/30"
+        >
+          <th
+            scope="row"
+            class="px-6 py-4 font-mono font-medium text-gray-900 whitespace-nowrap dark:text-white"
+          >
+            {{ param.paramKey }}
+          </th>
+          <td class="px-6 py-4 font-mono">{{ param.paramValue }}</td>
+          <td class="px-6 py-4 text-right">
+            <button
+              mat-icon-button
+              (click)="openFormDialog(param)"
+              aria-label="Edit parameter"
+            >
+              <mat-icon>edit</mat-icon>
+            </button>
+            <button
+              mat-icon-button
+              color="warn"
+              (click)="deleteParameter(param.paramKey)"
+              aria-label="Delete parameter"
+            >
+              <mat-icon>delete</mat-icon>
+            </button>
+          </td>
+        </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+  }
+</div>

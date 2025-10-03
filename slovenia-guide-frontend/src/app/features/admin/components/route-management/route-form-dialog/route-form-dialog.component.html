@@ -1,0 +1,59 @@
+<div class="p-6">
+  <h2 class="dark:text-white text-2xl font-bold">
+    {{ isEditMode ? "Edit Route" : "Add New Route" }}
+  </h2>
+
+  <div class="py-4">
+    <form [formGroup]="routeForm" class="flex flex-col gap-4">
+      <div class="form-field">
+        <label class="form-label">From Location</label>
+        <app-select-combobox
+          formControlName="locationAId"
+          [options]="locations()"
+          optionValueKey="id"
+          optionDisplayKey="name"
+          placeholder="Select a starting location..."
+          [sortable]="true"
+        ></app-select-combobox>
+      </div>
+
+      <div class="form-field">
+        <label class="form-label">To Location</label>
+        <app-select-combobox
+          formControlName="locationBId"
+          [options]="locations()"
+          optionValueKey="id"
+          optionDisplayKey="name"
+          placeholder="Select a destination..."
+          [sortable]="true"
+        ></app-select-combobox>
+      </div>
+
+      <div class="form-field">
+        <label class="form-label">Travel Time (minutes)</label>
+        <input
+          class="form-input"
+          type="number"
+          formControlName="travelTimeMinutes"
+          required
+        />
+      </div>
+    </form>
+  </div>
+
+  <div
+    class="flex justify-end items-center gap-2 pt-4 border-t border-gray-200 dark:border-gray-700"
+  >
+    <button type="button" class="btn-secondary" (click)="onCancel()">
+      Cancel
+    </button>
+    <button
+      type="button"
+      class="btn-primary"
+      (click)="onSave()"
+      [disabled]="routeForm.invalid"
+    >
+      {{ isEditMode ? "Update" : "Save" }}
+    </button>
+  </div>
+</div>

@@ -101,3 +101,6 @@ Blejsko jezero id = e68eba65-fec0-4ce9-9099-30dd087311c5
 Maribor id = f03330b9-86ef-4ddf-a2ac-c46524f88481
 
 Bohinjsko jezero = dd2f23da-5d36-42f4-8926-59f7d1040cb7
+
+
+

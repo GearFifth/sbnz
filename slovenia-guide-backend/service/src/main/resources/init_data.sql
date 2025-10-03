@@ -47,19 +47,18 @@ INSERT INTO location (id, name, type, region, ticket_price, visit_time_minutes, 
                                                                                                                                                                                                                (gen_random_uuid(), 'Predjamski grad', 'Dvorac', 'Notranjsko-kraška', 22.50, 75, 'MEDIUM', 'GOOD', 'Udobna obuća', 'Dvorac u steni sa mnogo stepenica. Preporučuje se paket sa Postojnskom jamom.', false, 1, 12),
                                                                                                                                                                                                                (gen_random_uuid(), 'Škocjanske jame', 'Pećina', 'Obalno-kraška', 24.00, 165, 'HIGH', 'COMPLICATED', 'Čvrsta sportska obuća, topla odeća', 'UNESCO baština. Fizički zahtevniji obilazak (5km, 1000 stepenika). Temperatura je 12°C.', false, 1, 12),
                                                                                                                                                                                                                (gen_random_uuid(), 'Piran', 'Grad', 'Obalno-kraška', 3.00, 210, 'MEDIUM', 'GOOD', 'Udobna obuća', 'Cena se odnosi na ulaz na gradske zidine. Sam grad je besplatan.', false, 1, 12),
-                                                                                                                                                                                                               (gen_random_uuid(), 'Kobilarna Lipica', 'Ergela', 'Obalno-kraška', 16.00, 120, 'LOW', 'COMPLICATED', 'Nema specijalnih zahteva', 'Poznata ergela lipicanera.', false, 1, 12);
+                                                                                                                                                                                                               (gen_random_uuid(), 'Kobilarna Lipica', 'Ergela', 'Obalno-kraška', 16.00, 120, 'LOW', 'COMPLICATED', '', 'Poznata ergela lipicanera.', false, 1, 12);
 
 -- Centralna, Podravska i ostale regije (AŽURIRANO)
 INSERT INTO location (id, name, type, region, ticket_price, visit_time_minutes, required_fitness, public_transport_accessibility, required_equipment, description, seasonal, opening_month, closing_month) VALUES
                                                                                                                                                                                                                (gen_random_uuid(), 'Ljubljana', 'Glavni grad', 'Osrednjeslovenska', 19.00, 240, 'LOW', 'EXCELLENT', 'Udobna obuća za hodanje', 'Glavni grad i idealna baza. Cena se odnosi na kombinovanu ulaznicu za dvorac sa uspinjačom.', false, 1, 12),
                                                                                                                                                                                                                (gen_random_uuid(), 'Maribor', 'Grad', 'Podravska', 10.90, 300, 'LOW', 'EXCELLENT', 'Ležerna odeća i udobna obuća', 'Štajerska prestonica vina. Cena se odnosi na osnovnu degustaciju u Kući Stare trte.', false, 1, 12),
                                                                                                                                                                                                                (gen_random_uuid(), 'Ptuj', 'Istorijski grad', 'Podravska', 10.00, 240, 'MEDIUM', 'GOOD', 'Udobna obuća za kaldrmu', 'Najstariji grad u Sloveniji, UNESCO nasleđe. Cena se odnosi na ulaz u dvorac.', false, 1, 12),
-                                                                                                                                                                                                               (gen_random_uuid(), 'Celje', 'Dvorac', 'Savinjska', 7.00, 120, 'MEDIUM', 'GOOD', 'Čvrsta i udobna obuća', 'Najveća srednjovekovna tvrđava u Sloveniji. Idealna kao usputna stanica.', false, 1, 12), -- ISPRAVLJENO IME
+                                                                                                                                                                                                               (gen_random_uuid(), 'Celje', 'Dvorac', 'Savinjska', 7.00, 120, 'MEDIUM', 'GOOD', 'Čvrsta i udobna obuća', 'Najveća srednjovekovna tvrđava u Sloveniji. Idealna kao usputna stanica.', false, 1, 12),
                                                                                                                                                                                                                (gen_random_uuid(), 'Logarska dolina', 'Dolina', 'Savinjska', 10.00, 180, 'MEDIUM', 'CAR_ONLY', 'Planinarska obuća', 'Pejzažni park. Cena je ulaz automobilom.', true, 4, 10),
                                                                                                                                                                                                                (gen_random_uuid(), 'Dolina Soče', 'Dolina', 'Goriška', 0.00, 480, 'MEDIUM', 'COMPLICATED', 'Oprema za vodene sportove ili planinarenje', 'Centar za adrenalinske sportove. Vršič prelaz je sezonski.', true, 5, 10),
-                                                                                                                                                                                                               (gen_random_uuid(), 'Kobariški muzej', 'Muzej', 'Goriška', 8.00, 105, 'LOW', 'COMPLICATED', 'Nema posebnih zahteva', 'Pruža istorijski kontekst za region Doline Soče, fokusiran na Prvi svetski rat.', false, 1, 12),
+                                                                                                                                                                                                               (gen_random_uuid(), 'Kobariški muzej', 'Muzej', 'Goriška', 8.00, 105, 'LOW', 'COMPLICATED', '', 'Pruža istorijski kontekst za region Doline Soče, fokusiran na Prvi svetski rat.', false, 1, 12),
                                                                                                                                                                                                                (gen_random_uuid(), 'Tolminska korita', 'Kanjon', 'Goriška', 8.00, 90, 'MEDIUM', 'COMPLICATED', 'Neklizajuća obuća', 'Najniža ulazna tačka u Triglavski nacionalni park.', true, 4, 11);
-
 
 -- ########## 3. POVEZIVANJE LOKACIJA I TAGOVA ##########
 INSERT INTO location_tags (location_id, tag_id) SELECT l.id, t.id FROM location l, tag t WHERE l.name = 'Blejsko jezero' AND t.name IN ('romantika', 'jezero', 'dvorac', 'ostrvo', 'crkva', 'fotografija', 'šetnja', 'istorija', 'krempita', 'veslanje', 'porodice');
@@ -81,8 +80,8 @@ INSERT INTO location_tags (location_id, tag_id) SELECT l.id, t.id FROM location 
 INSERT INTO location_tags (location_id, tag_id) SELECT l.id, t.id FROM location l, tag t WHERE l.name = 'Kobariški muzej' AND t.name IN ('muzej', 'istorija WW1', 'edukacija', 'kultura', 'rat', 'istorija');
 INSERT INTO location_tags (location_id, tag_id) SELECT l.id, t.id FROM location l, tag t WHERE l.name = 'Tolminska korita' AND t.name IN ('priroda', 'kanjon', 'nacionalni park', 'šetnja', 'most', 'reke', 'geologija');
 
-
 -- ########## 4. KREIRANJE RUTA ##########
+-- Postojeće rute između glavnih čvorišta
 INSERT INTO route (id, location_a_id, location_b_id, travel_time_minutes) VALUES
                                                                               (gen_random_uuid(), (SELECT id FROM location WHERE name='Ljubljana'), (SELECT id FROM location WHERE name='Blejsko jezero'), 45),
                                                                               (gen_random_uuid(), (SELECT id FROM location WHERE name='Ljubljana'), (SELECT id FROM location WHERE name='Bohinjsko jezero'), 75),
@@ -111,6 +110,42 @@ INSERT INTO route (id, location_a_id, location_b_id, travel_time_minutes) VALUES
                                                                               (gen_random_uuid(), (SELECT id FROM location WHERE name='Blejsko jezero'), (SELECT id FROM location WHERE name='Dolina Soče'), 90),
                                                                               (gen_random_uuid(), (SELECT id FROM location WHERE name='Maribor'), (SELECT id FROM location WHERE name='Celje'), 40),
                                                                               (gen_random_uuid(), (SELECT id FROM location WHERE name='Celje'), (SELECT id FROM location WHERE name='Dolina Soče'), 175);
+
+-- ########## DODATNE, PROŠIRENE RUTE ##########
+-- Rute unutar Gorenjske regije
+INSERT INTO route (id, location_a_id, location_b_id, travel_time_minutes) VALUES
+                                                                              (gen_random_uuid(), (SELECT id FROM location WHERE name='Blejsko jezero'), (SELECT id FROM location WHERE name='Soteska Vintgar'), 10),
+                                                                              (gen_random_uuid(), (SELECT id FROM location WHERE name='Blejsko jezero'), (SELECT id FROM location WHERE name='Blejski grad'), 5),
+                                                                              (gen_random_uuid(), (SELECT id FROM location WHERE name='Bohinjsko jezero'), (SELECT id FROM location WHERE name='Slap Savica'), 10),
+                                                                              (gen_random_uuid(), (SELECT id FROM location WHERE name='Kranjska Gora'), (SELECT id FROM location WHERE name='Triglavski narodni park'), 15);
+
+-- Rute unutar Kraške i Obalne regije
+INSERT INTO route (id, location_a_id, location_b_id, travel_time_minutes) VALUES
+                                                                              (gen_random_uuid(), (SELECT id FROM location WHERE name='Postojnska jama'), (SELECT id FROM location WHERE name='Predjamski grad'), 15),
+                                                                              (gen_random_uuid(), (SELECT id FROM location WHERE name='Postojnska jama'), (SELECT id FROM location WHERE name='Škocjanske jame'), 30),
+                                                                              (gen_random_uuid(), (SELECT id FROM location WHERE name='Postojnska jama'), (SELECT id FROM location WHERE name='Kobilarna Lipica'), 30),
+                                                                              (gen_random_uuid(), (SELECT id FROM location WHERE name='Piran'), (SELECT id FROM location WHERE name='Kobilarna Lipica'), 30),
+                                                                              (gen_random_uuid(), (SELECT id FROM location WHERE name='Piran'), (SELECT id FROM location WHERE name='Škocjanske jame'), 40),
+                                                                              (gen_random_uuid(), (SELECT id FROM location WHERE name='Kobilarna Lipica'), (SELECT id FROM location WHERE name='Škocjanske jame'), 20);
+
+-- Rute unutar Istočne Slovenije
+INSERT INTO route (id, location_a_id, location_b_id, travel_time_minutes) VALUES
+                                                                              (gen_random_uuid(), (SELECT id FROM location WHERE name='Maribor'), (SELECT id FROM location WHERE name='Ptuj'), 30),
+                                                                              (gen_random_uuid(), (SELECT id FROM location WHERE name='Ptuj'), (SELECT id FROM location WHERE name='Celje'), 45),
+                                                                              (gen_random_uuid(), (SELECT id FROM location WHERE name='Ljubljana'), (SELECT id FROM location WHERE name='Logarska dolina'), 90),
+                                                                              (gen_random_uuid(), (SELECT id FROM location WHERE name='Celje'), (SELECT id FROM location WHERE name='Logarska dolina'), 75);
+
+-- Rute unutar Doline Soče (Goriška regija)
+INSERT INTO route (id, location_a_id, location_b_id, travel_time_minutes) VALUES
+                                                                              (gen_random_uuid(), (SELECT id FROM location WHERE name='Dolina Soče'), (SELECT id FROM location WHERE name='Kobariški muzej'), 20),
+                                                                              (gen_random_uuid(), (SELECT id FROM location WHERE name='Dolina Soče'), (SELECT id FROM location WHERE name='Tolminska korita'), 40),
+                                                                              (gen_random_uuid(), (SELECT id FROM location WHERE name='Kobariški muzej'), (SELECT id FROM location WHERE name='Tolminska korita'), 20);
+
+-- Dodatne logične međuregionalne rute
+INSERT INTO route (id, location_a_id, location_b_id, travel_time_minutes) VALUES
+                                                                              (gen_random_uuid(), (SELECT id FROM location WHERE name='Kranjska Gora'), (SELECT id FROM location WHERE name='Dolina Soče'), 45), -- Preko prelaza Vršič (sezonski!)
+                                                                              (gen_random_uuid(), (SELECT id FROM location WHERE name='Ptuj'), (SELECT id FROM location WHERE name='Ljubljana'), 90),
+                                                                              (gen_random_uuid(), (SELECT id FROM location WHERE name='Bohinjsko jezero'), (SELECT id FROM location WHERE name='Tolminska korita'), 60); -- Put preko Soriške planine
 
 -- ########## 5. KREIRANJE PARAMETARA ZA PRAVILA ##########
 INSERT INTO rule_parameter (param_key, param_value) VALUES

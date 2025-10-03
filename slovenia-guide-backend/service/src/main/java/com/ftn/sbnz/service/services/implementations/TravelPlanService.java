@@ -48,9 +48,7 @@ public class TravelPlanService implements ITravelPlanService {
     public TravelPlanResponse generatePlan(TravelPreferences preferences) {
         List<Recommendation> recommendations = executeScoringPhase(preferences);
 
-        List<Location> topLocations = selectTopLocations(recommendations, preferences.getNumberOfDays());
-
-        PlanningResult result = executePlanningAndClassificationPhase(preferences, topLocations);
+        PlanningResult result = executePlanningAndClassificationPhase(preferences, recommendations);
 
         result.itinerary().sort(Comparator.comparing(ItineraryItem::getDay));
         TravelPlanResponse response = new TravelPlanResponse(UUID.randomUUID(), result.itinerary(), result.alerts(), result.tripType());
@@ -97,21 +95,10 @@ public class TravelPlanService implements ITravelPlanService {
     }
 
     /**
-     * Pomoćna metoda koja sortira preporuke i odabira najboljih N lokacija.
-     */
-    private List<Location> selectTopLocations(List<Recommendation> recommendations, int numberOfDays) {
-        return recommendations.stream()
-                .sorted(Comparator.comparing(Recommendation::getScore).reversed())
-                .limit(numberOfDays * 2L)
-                .map(Recommendation::getLocation)
-                .collect(Collectors.toList());
-    }
-
-    /**
      * Kreira sesiju, pokreće pravila za sklapanje plana, upozorenja i klasifikaciju.
      * Vraća rezultate upakovane u PlanningResult objekat.
      */
-    private PlanningResult executePlanningAndClassificationPhase(TravelPreferences preferences, List<Location> topLocations) {
+    private PlanningResult executePlanningAndClassificationPhase(TravelPreferences preferences, List<Recommendation> recommendations) {
         KieSession planningSession = kieContainer.newKieSession();
         try {
             // Sklapanje Plana
@@ -119,7 +106,7 @@ public class TravelPlanService implements ITravelPlanService {
             planningSession.setGlobal("itinerary", itinerary);
             planningSession.getAgenda().getAgendaGroup("itinerary").setFocus();
             planningSession.insert(preferences);
-            topLocations.forEach(planningSession::insert);
+            recommendations.forEach(planningSession::insert);
             routeRepository.findAll().forEach(planningSession::insert);
             planningSession.fireAllRules();
 
