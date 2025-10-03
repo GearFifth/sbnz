@@ -22,7 +22,7 @@ body {
   font-family: Roboto, "Helvetica Neue", sans-serif;
 }
 
-// 3. Your Custom Component Styles
+// 3. Custom Component Styles
 .main-container {
   min-height: 100vh;
   background-image: var(--background-image-light);
@@ -57,9 +57,9 @@ body {
   background-image: var(--background-image-dark);
 }
 
-// 4. Angular Material Theming (the correct custom version)
+// 4. Angular Material Theming
 
-// Define our custom palette based on the teal theme.
+// Custom palette based on the teal theme.
 $slovenia-guide-primary: mat.define-palette(mat.$teal-palette, 600, 400, 800);
 $slovenia-guide-accent: mat.define-palette(
   mat.$blue-gray-palette,
@@ -69,7 +69,7 @@ $slovenia-guide-accent: mat.define-palette(
 );
 $slovenia-guide-warn: mat.define-palette(mat.$red-palette);
 
-// Create the light theme object.
+// The light theme object.
 $slovenia-guide-light-theme: mat.define-light-theme(
   (
     color: (
@@ -80,7 +80,7 @@ $slovenia-guide-light-theme: mat.define-light-theme(
   )
 );
 
-// Create the dark theme object.
+// The dark theme object.
 $slovenia-guide-dark-theme: mat.define-dark-theme(
   (
     color: (

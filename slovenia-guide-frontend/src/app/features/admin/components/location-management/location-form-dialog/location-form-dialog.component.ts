@@ -7,7 +7,6 @@ import {
   ReactiveFormsModule,
   Validators,
 } from '@angular/forms';
-import { MaterialModule } from '../../../../../shared/material.module';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { Location } from '../../../../../core/models/location.model';
 import { SelectComboboxComponent } from '../../../../../shared/components/select-combobox/select-combobox.component';
@@ -27,7 +26,6 @@ export class LocationFormDialogComponent implements OnInit {
   isEditMode = false;
   tagInput = new FormControl('');
 
-  // Podaci za novi combobox
   readonly months = Array.from({ length: 12 }, (_, i) => ({
     value: i + 1,
     name: `${i + 1}`,

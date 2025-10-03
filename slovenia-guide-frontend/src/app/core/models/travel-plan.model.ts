@@ -1,6 +1,5 @@
 import { Location } from './location.model';
 
-// Payload to send to the backend to generate a plan
 export interface TravelPreferences {
   numberOfDays: number;
   budget: 'LOW' | 'MEDIUM' | 'HIGH';
@@ -10,24 +9,21 @@ export interface TravelPreferences {
   travelMonth: number;
 }
 
-// A single item in the generated itinerary
 export interface ItineraryItem {
-  day: number; // Renamed from dayNumber
+  day: number;
   location: Location;
-  proposedActivity: string; // Renamed from suggestedActivities
+  proposedActivity: string;
 }
 
-// An alert or warning for the user
 export interface Alert {
   message: string;
   planId: string;
   locationId?: string;
 }
 
-// The complete response from the backend
 export interface TravelPlanResponse {
   planId: string;
-  itinerary: ItineraryItem[]; // Renamed from itineraryItems
+  itinerary: ItineraryItem[];
   alerts: Alert[];
   tripType: string;
 }

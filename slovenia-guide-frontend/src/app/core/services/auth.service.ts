@@ -9,7 +9,6 @@ import { environment } from '../../../env/env';
 })
 export class AuthService {
   private http = inject(HttpClient);
-  // Use the base URL from the environment file
   private readonly API_BASE_URL = `${environment.apiBaseUrl}/auth`;
 
   register(details: {
@@ -28,10 +27,7 @@ export class AuthService {
   }): Observable<AuthResponse> {
     return this.http
       .post<AuthResponse>(`${this.API_BASE_URL}/login`, credentials)
-      .pipe(
-        // Use the 'tap' operator to perform a side effect (saving the token)
-        tap((response) => this.saveToken(response.token))
-      );
+      .pipe(tap((response) => this.saveToken(response.token)));
   }
 
   saveToken(token: string): void {

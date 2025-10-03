@@ -14,16 +14,18 @@ describe('AppComponent', () => {
     expect(app).toBeTruthy();
   });
 
-  it(`should have the 'kms_front' title`, () => {
+  it(`should have the 'slovenia-guide-frontend' title`, () => {
     const fixture = TestBed.createComponent(AppComponent);
     const app = fixture.componentInstance;
-    expect(app.title).toEqual('kms_front');
+    expect(app.title).toEqual('slovenia-guide-frontend');
   });
 
   it('should render title', () => {
     const fixture = TestBed.createComponent(AppComponent);
     fixture.detectChanges();
     const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelector('h1')?.textContent).toContain('Hello, kms_front');
+    expect(compiled.querySelector('h1')?.textContent).toContain(
+      'Hello, slovenia-guide-frontend'
+    );
   });
 });

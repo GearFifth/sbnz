@@ -39,7 +39,7 @@ export class RuleParameterFormDialogComponent implements OnInit {
 
   onSave(): void {
     if (this.parameterForm.invalid) return;
-    this.dialogRef.close(this.parameterForm.getRawValue()); // Use getRawValue() to include disabled fields
+    this.dialogRef.close(this.parameterForm.getRawValue());
   }
 
   onCancel(): void {

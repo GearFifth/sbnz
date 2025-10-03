@@ -12,7 +12,7 @@ import { LoaderComponent } from './shared/components/loader/loader.component';
   styleUrl: './app.component.scss',
 })
 export class AppComponent {
-  title = 'kms_front';
+  title = 'slovenia-guide-frontend';
 
   private themeService = inject(ThemeService);
 }

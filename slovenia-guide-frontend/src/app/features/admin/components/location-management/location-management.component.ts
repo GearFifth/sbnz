@@ -22,14 +22,12 @@ export class LocationManagementComponent implements OnInit {
   private dialog = inject(MatDialog);
 
   locations = signal<Location[]>([]);
-  // The isLoading signal is no longer needed!
 
   ngOnInit(): void {
     this.loadLocations();
   }
 
   loadLocations(): void {
-    // No more finalize() operator needed!
     this.locationService
       .getLocations()
       .subscribe((data) => this.locations.set(data));
@@ -48,12 +46,10 @@ export class LocationManagementComponent implements OnInit {
         (result: CreateLocationRequest | UpdateLocationRequest | undefined) => {
           if (result) {
             if (location) {
-              // If a location was passed, the result is an UpdateLocationRequest
               this.locationService
                 .updateLocation(result as UpdateLocationRequest)
                 .subscribe(() => this.loadLocations());
             } else {
-              // Otherwise, the result is a CreateLocationRequest
               this.locationService
                 .createLocation(result as CreateLocationRequest)
                 .subscribe(() => this.loadLocations());

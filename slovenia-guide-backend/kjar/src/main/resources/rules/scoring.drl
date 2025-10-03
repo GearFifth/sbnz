@@ -26,15 +26,12 @@ end
 
 rule "Reward recommendations that match user interests"
     agenda-group "scoring"
-    salience 10 // High salience to run after the baseline is created.
+    salience 10
     when
         $prefs: TravelPreferences($interests: interests)
-        // Find an existing recommendation...
         $rec: Recommendation($location: location, $tags: location.getTags())
-        // ...and check if its location's tags match an interest.
         exists Tag(name memberOf $interests) from $tags
     then
-        // Modify the score, adding to the baseline of 1.
         modify($rec) {
             setScore($rec.getScore() + 10),
             setReason("Matches user interest.")
@@ -165,17 +162,15 @@ rule "Promote Ljubljana as a central hub for multi-region trips"
     no-loop true
     when
         TravelPreferences(numberOfDays >= 3)
-        // Skupljamo sve jedinstvene regione iz preporuka sa visokim skorom (npr. > 10)
         accumulate(
             Recommendation(score > 10, $region: location.getRegion());
             $regions: collectSet($region)
         )
-        // Proveravamo da li skup regiona sadrži više od jednog regiona
         Set(size >= 2) from $regions
         $rec: Recommendation(location.name == "Ljubljana", $score: score)
     then
         modify($rec) {
-            setScore($score + 20), // Dajemo čak i veći bonus jer je ovo logistički jako važno
+            setScore($score + 20),
             setReason($rec.getReason() + " Bonus kao centralno čvorište za putovanje kroz više regiona.")
         }
         System.out.println("Povećan skor za Ljubljanu (jer je centralno čvorište). Novi skor: " + $rec.getScore());

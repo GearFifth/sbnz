@@ -41,16 +41,13 @@ rule "Assign BEST recommendation to Day 1"
     salience 50
     when
         $plan: DailyPlan(day == 1, locations.size == 0)
-        // Find the recommendation with the highest score
         $rec: Recommendation($location: location)
-        // And ensure no other recommendation has a better score
         not Recommendation(score > $rec.getScore())
     then
         modify($plan) {
             getLocations().add($location),
             setTotalTime($plan.getTotalTime() + $location.getVisitTimeMinutes())
         }
-        // Delete the recommendation fact so it's not used again
         delete($rec);
         System.out.println("Dan 1: Dodata PRVA NAJBOLJA lokacija " + $location.getName());
 end
@@ -63,19 +60,16 @@ rule "Iteratively group nearby locations in the same day"
         $plan: DailyPlan($day: day, $locations: locations, locations.size > 0, $totalTime: totalTime)
         $existingLocation: Location() from $locations
 
-        // Find a new recommendation whose location is close by
         $rec: Recommendation($newLocation: location)
         ( Route(locationA == $existingLocation, locationB == $newLocation, $time: travelTimeMinutes < 45) or
           Route(locationA == $newLocation, locationB == $existingLocation, $time: travelTimeMinutes < 45) )
 
-        // Check if it fits within the day's time limit
         eval($totalTime + $newLocation.getVisitTimeMinutes() + $time < 480)
     then
         modify($plan) {
             getLocations().add($newLocation),
             setTotalTime($plan.getTotalTime() + $newLocation.getVisitTimeMinutes() + $time)
         }
-        // Delete the used recommendation
         delete($rec);
         System.out.println("Dan " + $day + ": Iterativno dodata bliska lokacija " + $newLocation.getName());
 end
@@ -84,7 +78,6 @@ rule "Assign NEXT BEST recommendation to a new day"
     agenda-group "itinerary"
     when
         $plan: DailyPlan(locations.size == 0)
-        // Find the recommendation with the highest score among those remaining
         $rec: Recommendation($location: location)
         not Recommendation(score > $rec.getScore())
     then
@@ -92,7 +85,6 @@ rule "Assign NEXT BEST recommendation to a new day"
             getLocations().add($location),
             setTotalTime($plan.getTotalTime() + $location.getVisitTimeMinutes())
         }
-        // Delete the used recommendation
         delete($rec);
         System.out.println("Dan " + $plan.getDay() + ": Početak sa SLEDEĆOM NAJBOLJOM lokacijom " + $location.getName());
 end
