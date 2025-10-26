@@ -21,7 +21,7 @@ rule "Filter out locations not accessible by public transport"
         $location: Location(publicTransportAccessibility == PublicTransportAccessibility.CAR_ONLY)
     then
         delete($location);
-        System.out.println("Filtrirana lokacija zbog prevoza: " + $location.getName());
+        System.out.println("Filtered location due to transport: " + $location.getName());
 end
 
 rule "Filter out locations based on fitness level"
@@ -32,7 +32,7 @@ rule "Filter out locations based on fitness level"
         $location: Location($reqFitness: requiredFitness, eval($reqFitness.ordinal() > $fitness.ordinal()))
     then
         delete($location);
-        System.out.println("Filtrirana lokacija zbog fizičke spreme: " + $location.getName());
+        System.out.println("Filtered location due to fitness level: " + $location.getName());
 end
 
 
@@ -44,7 +44,7 @@ rule "Filter out seasonally closed locations"
         $location: Location(seasonal == true, openingMonth > $month || closingMonth < $month)
     then
         delete($location);
-        System.out.println("Filtrirana lokacija zbog sezone: " + $location.getName());
+        System.out.println("Filtered location due to season: " + $location.getName());
 end
 
 //rule "Filter expensive locations for LOW budget"
@@ -56,7 +56,7 @@ end
 //        $location: Location(ticketPrice > $limit)
 //    then
 //        delete($location);
-//        System.out.println("Filtrirana lokacija zbog niskog budžeta: " + $location.getName());
+//        System.out.println("Filtered location due to low budget: " + $location.getName());
 //end
 //
 //rule "Filter expensive locations for MEDIUM budget"
@@ -68,16 +68,16 @@ end
 //        $location: Location(ticketPrice > $limit)
 //    then
 //        delete($location);
-//        System.out.println("Filtrirana lokacija zbog srednjeg budžeta: " + $location.getName());
+//        System.out.println("Filtered location due to medium budget: " + $location.getName());
 //end
 
 rule "Filter locations if access road is closed"
     agenda-group "scoring"
     salience 30
     when
-        RoadStatusEvent(roadName == "Vršič", status == RoadStatus.CLOSED)
-        $location: Location(name == "Triglavski narodni park" || name == "Kranjska Gora")
+        RoadStatusEvent(roadName == "Vršič Pass", status == RoadStatus.CLOSED)
+        $location: Location(name == "Triglav National Park" || name == "Kranjska Gora")
     then
         delete($location);
-        System.out.println("Filtrirana lokacija (zbog CEP događaja) '" + $location.getName() + "' jer je prelaz Vršič zatvoren.");
+        System.out.println("Filtered location (due to CEP event) '" + $location.getName() + "' because Vršič Pass is closed.");
 end

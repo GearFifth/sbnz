@@ -16,7 +16,7 @@ rule "Alert for overpacked day"
     when
         DailyPlan($day: day, totalTime > 420)
     then
-        String message = "Plan za Dan " + $day + " je prilično ambiciozan. Proverite da li imate dovoljno vremena.";
+        String message = "The plan for Day " + $day + " is quite ambitious. Check if you have enough time.";
         if (uniqueAlerts.add(message)) {
             alerts.add(new Alert(message, null, null));
         }
@@ -28,7 +28,7 @@ rule "Alert for required equipment"
     when
         ItineraryItem($location: location, $location.requiredEquipment != null && !$location.requiredEquipment.isEmpty())
     then
-        String message = "Preporučuje se: " + $location.getRequiredEquipment();
+        String message = "Recommended: " + $location.getRequiredEquipment();
         if (uniqueAlerts.add(message)) {
             alerts.add(new Alert(message, null, $location.getId()));
         }

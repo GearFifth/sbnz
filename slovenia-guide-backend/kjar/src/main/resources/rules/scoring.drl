@@ -21,7 +21,7 @@ rule "Create baseline recommendation for all valid locations"
     then
         Recommendation rec = new Recommendation($location, 10.0, "General option.");
         insert(rec);
-        System.out.println("Kreirana OSNOVNA preporuka za: " + $location.getName() + " sa skorom 10.");
+        System.out.println("Created BASELINE recommendation for: " + $location.getName() + " with score 10.");
 end
 
 rule "Reward recommendations that match user interests"
@@ -36,7 +36,7 @@ rule "Reward recommendations that match user interests"
             setScore($rec.getScore() + 10),
             setReason("Matches user interest.")
         }
-        System.out.println("Povećan skor za lokaciju: " + $location.getName() + " zbog poklapanja interesa.");
+        System.out.println("Increased score for location: " + $location.getName() + " due to matching interest.");
 end
 
 
@@ -44,28 +44,28 @@ rule "Boost Bled for romance interest"
     agenda-group "scoring"
     no-loop true
     when
-        TravelPreferences(interests contains "romantika")
-        $rec: Recommendation(location.name == "Blejsko jezero", $score: score)
+        TravelPreferences(interests contains "romance")
+        $rec: Recommendation(location.name == "Lake Bled", $score: score)
     then
         modify($rec) {
             setScore($score + 20),
-            setReason($rec.getReason() + " Dodatni poeni za romantiku.")
+            setReason($rec.getReason() + " Additional points for romance.")
         }
-        System.out.println("Povećan skor za Bled (romantika). Novi skor: " + $rec.getScore());
+        System.out.println("Increased score for Bled (romance). New score: " + $rec.getScore());
 end
 
 rule "Boost Bohinj for adventure interest"
     agenda-group "scoring"
     no-loop true
     when
-        TravelPreferences(interests contains "avantura")
-        $rec: Recommendation(location.name == "Bohinjsko jezero", $score: score)
+        TravelPreferences(interests contains "adventure")
+        $rec: Recommendation(location.name == "Lake Bohinj", $score: score)
     then
         modify($rec) {
             setScore($score + 20),
-            setReason($rec.getReason() + " Dodatni poeni za avanturu.")
+            setReason($rec.getReason() + " Additional points for adventure.")
         }
-        System.out.println("Povećan skor za Bohinj (avantura). Novi skor: " + $rec.getScore());
+        System.out.println("Increased score for Bohinj (adventure). New score: " + $rec.getScore());
 end
 
 rule "Penalize Skocjan for low fitness"
@@ -73,55 +73,55 @@ rule "Penalize Skocjan for low fitness"
     no-loop true
     when
         TravelPreferences(fitnessLevel == com.ftn.sbnz.model.enums.FitnessLevel.LOW)
-        $rec: Recommendation(location.name == "Škocjanske jame", $score: score)
+        $rec: Recommendation(location.name == "Škocjan Caves", $score: score)
     then
         modify($rec) {
             setScore($score - 30),
-            setReason($rec.getReason() + " Umanjen skor zbog visoke fizičke zahtevnosti.")
+            setReason($rec.getReason() + " Reduced score due to high physical demand.")
         }
-        System.out.println("Smanjen skor za Škocjanske jame (niska sprema). Novi skor: " + $rec.getScore());
+        System.out.println("Decreased score for Škocjan Caves (low fitness). New score: " + $rec.getScore());
 end
 
 rule "Reward Postojna for families"
     agenda-group "scoring"
     no-loop true
     when
-        TravelPreferences(interests contains "porodice")
-        $rec: Recommendation(location.name == "Postojnska jama", $score: score)
+        TravelPreferences(interests contains "families")
+        $rec: Recommendation(location.name == "Postojna Cave", $score: score)
     then
         modify($rec) {
             setScore($score + 15),
-            setReason($rec.getReason() + " Dodatni poeni za porodične aktivnosti.")
+            setReason($rec.getReason() + " Additional points for family activities.")
         }
-        System.out.println("Povećan skor za Postojnsku jamu (porodice). Novi skor: " + $rec.getScore());
+        System.out.println("Increased score for Postojna Cave (families). New score: " + $rec.getScore());
 end
 
 rule "Reward Bohinj for authenticity"
     agenda-group "scoring"
     no-loop true
     when
-        TravelPreferences(interests contains "autentično")
-        $rec: Recommendation(location.name == "Bohinjsko jezero", $score: score)
+        TravelPreferences(interests contains "authentic")
+        $rec: Recommendation(location.name == "Lake Bohinj", $score: score)
     then
         modify($rec) {
             setScore($score + 15),
-            setReason($rec.getReason() + " Dodatni poeni za autentično iskustvo prirode.")
+            setReason($rec.getReason() + " Additional points for an authentic nature experience.")
         }
-        System.out.println("Povećan skor za Bohinj (autentičnost). Novi skor: " + $rec.getScore());
+        System.out.println("Increased score for Bohinj (authenticity). New score: " + $rec.getScore());
 end
 
 rule "Reward Skocjan Caves for specific interests"
     agenda-group "scoring"
     no-loop true
     when
-        TravelPreferences(interests contains "UNESCO" || interests contains "geologija")
-        $rec: Recommendation(location.name == "Škocjanske jame", $score: score)
+        TravelPreferences(interests contains "UNESCO" || interests contains "geology")
+        $rec: Recommendation(location.name == "Škocjan Caves", $score: score)
     then
         modify($rec) {
             setScore($score + 25),
-            setReason($rec.getReason() + " Visok bonus za UNESCO i geološka interesovanja.")
+            setReason($rec.getReason() + " High bonus for UNESCO and geological interests.")
         }
-        System.out.println("Povećan skor za Škocjanske jame (UNESCO/geologija). Novi skor: " + $rec.getScore());
+        System.out.println("Increased score for Škocjan Caves (UNESCO/geology). New score: " + $rec.getScore());
 end
 
 rule "Promote the Postojna + Predjama Castle package"
@@ -129,32 +129,32 @@ rule "Promote the Postojna + Predjama Castle package"
     no-loop true
     salience -5
     when
-        $rec1: Recommendation(location.name == "Postojnska jama", $score1: score)
-        $rec2: Recommendation(location.name == "Predjamski grad", $score2: score)
+        $rec1: Recommendation(location.name == "Postojna Cave", $score1: score)
+        $rec2: Recommendation(location.name == "Predjama Castle", $score2: score)
     then
         modify($rec1) {
             setScore($score1 + 10),
-            setReason($rec1.getReason() + " Bonus jer je u paketu sa Predjamskim gradom.")
+            setReason($rec1.getReason() + " Bonus for being in a package with Predjama Castle.")
         }
         modify($rec2) {
             setScore($score2 + 10),
-            setReason($rec2.getReason() + " Bonus jer je u paketu sa Postojnskom jamom.")
+            setReason($rec2.getReason() + " Bonus for being in a package with Postojna Cave.")
         }
-        System.out.println("Povećan skor za Postojnu i Predjamski grad kao paket.");
+        System.out.println("Increased score for Postojna and Predjama Castle as a package.");
 end
 
 rule "Promote Ljubljana for urban interest on longer trips"
     agenda-group "scoring"
     no-loop true
     when
-        TravelPreferences(numberOfDays >= 3, interests contains "grad")
+        TravelPreferences(numberOfDays >= 3, interests contains "city")
         $rec: Recommendation(location.name == "Ljubljana", $score: score)
     then
         modify($rec) {
             setScore($score + 15),
-            setReason($rec.getReason() + " Bonus kao odlična gradska baza za duže putovanje.")
+            setReason($rec.getReason() + " Bonus as an excellent city base for a longer trip.")
         }
-        System.out.println("Povećan skor za Ljubljanu (jer je gradska baza). Novi skor: " + $rec.getScore());
+        System.out.println("Increased score for Ljubljana (as a city base). New score: " + $rec.getScore());
 end
 
 rule "Promote Ljubljana as a central hub for multi-region trips"
@@ -171,9 +171,9 @@ rule "Promote Ljubljana as a central hub for multi-region trips"
     then
         modify($rec) {
             setScore($score + 20),
-            setReason($rec.getReason() + " Bonus kao centralno čvorište za putovanje kroz više regiona.")
+            setReason($rec.getReason() + " Bonus as a central hub for a multi-region trip.")
         }
-        System.out.println("Povećan skor za Ljubljanu (jer je centralno čvorište). Novi skor: " + $rec.getScore());
+        System.out.println("Increased score for Ljubljana (as a central hub). New score: " + $rec.getScore());
 end
 
 rule "Synergy between Soca Valley and Kobarid Museum - Advanced"
@@ -181,28 +181,28 @@ rule "Synergy between Soca Valley and Kobarid Museum - Advanced"
     no-loop true
     salience -5
     when
-        $prefs: TravelPreferences(interests contains "avantura")
-        exists (String(this matches ".*istorija.*") from $prefs.getInterests())
-        $rec1: Recommendation(location.name == "Dolina Soče", $score1: score)
-        $rec2: Recommendation(location.name == "Kobariški muzej", $score2: score)
+        $prefs: TravelPreferences(interests contains "adventure")
+        exists (String(this matches ".*history.*") from $prefs.getInterests())
+        $rec1: Recommendation(location.name == "Soča Valley", $score1: score)
+        $rec2: Recommendation(location.name == "Kobarid Museum", $score2: score)
     then
         modify($rec1) { setScore($score1 + 20) }
         modify($rec2) { setScore($score2 + 20) }
-        System.out.println("Povećan skor za Dolinu Soče i Kobariški muzej kao paket.");
+        System.out.println("Increased score for Soča Valley and Kobarid Museum as a package.");
 end
 
 rule "Promote Eastern Heritage Trail"
     agenda-group "scoring"
     no-loop true
     when
-        TravelPreferences(interests contains "vino", interests contains "istorija")
+        TravelPreferences(interests contains "wine", interests contains "history")
         $rec: Recommendation(location.name in ("Maribor", "Ptuj", "Celje"), $score: score)
     then
         modify($rec) {
             setScore($score + 25),
-            setReason($rec.getReason() + " Bonus kao deo Staze istočnog nasleđa.")
+            setReason($rec.getReason() + " Bonus as part of the Eastern Heritage Trail.")
         }
-        System.out.println("Povećan skor za " + $rec.getLocation().getName() + " (istočno nasleđe).");
+        System.out.println("Increased score for " + $rec.getLocation().getName() + " (Eastern Heritage).");
 end
 
 rule "Massive boost for perfect adventurer profile"
@@ -210,12 +210,12 @@ rule "Massive boost for perfect adventurer profile"
     no-loop true
     salience 5
     when
-        TravelPreferences(fitnessLevel == FitnessLevel.HIGH, interests contains "izazovno")
+        TravelPreferences(fitnessLevel == FitnessLevel.HIGH, interests contains "challenging")
         $rec: Recommendation(location.requiredFitness == FitnessLevel.HIGH, $score: score)
     then
         modify($rec) {
             setScore($score + 50),
-            setReason($rec.getReason() + " Specijalan bonus za idealnog avanturistu.")
+            setReason($rec.getReason() + " Special bonus for the ideal adventurer.")
         }
-        System.out.println("Specijalan bonus za " + $rec.getLocation().getName() + ". Novi skor: " + $rec.getScore());
+        System.out.println("Special bonus for " + $rec.getLocation().getName() + ". New score: " + $rec.getScore());
 end

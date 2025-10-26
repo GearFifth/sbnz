@@ -20,7 +20,7 @@ rule "Conclude: High-Intensity Alpine Expedition"
         TripIntensity(intensityLevel == "ACTIVE")
         TripPacing(level == PacingLevel.FAST_PACED)
     then
-        insert(new TripClassification("Ekstremna alpska ekspedicija"));
+        insert(new TripClassification("Extreme Alpine Expedition"));
 end
 
 rule "Conclude: Relaxed Cultural City Break"
@@ -30,7 +30,7 @@ rule "Conclude: Relaxed Cultural City Break"
         TripIntensity(intensityLevel == "RELAXED")
         TripPacing(level == PacingLevel.RELAXED)
     then
-        insert(new TripClassification("Opuštena gradska tura posvećena kulturi"));
+        insert(new TripClassification("Relaxed Urban Cultural Tour"));
 end
 
 rule "Conclude: Balanced Karst & Coast Tour"
@@ -40,7 +40,7 @@ rule "Conclude: Balanced Karst & Coast Tour"
         TripIntensity(intensityLevel == "MODERATE")
         TripPacing(level == PacingLevel.BALANCED)
     then
-        insert(new TripClassification("Balansirana tura po krasu i obali"));
+        insert(new TripClassification("Balanced Karst & Coast Tour"));
 end
 
 rule "Conclude: Relaxed Alpine Vacation"
@@ -49,7 +49,7 @@ rule "Conclude: Relaxed Alpine Vacation"
         TripFocus(focusType == "ALPINE")
         TripIntensity(intensityLevel == "RELAXED")
     then
-        insert(new TripClassification("Opušteni odmor u Alpima"));
+        insert(new TripClassification("Relaxed Alpine Vacation"));
 end
 
 rule "Conclude: Eastern Wine & History Trail"
@@ -58,7 +58,7 @@ rule "Conclude: Eastern Wine & History Trail"
         TripFocus(focusType == "EASTERN_HERITAGE")
         TripPacing(level != PacingLevel.FAST_PACED)
     then
-        insert(new TripClassification("Lagana tura istočnog nasleđa i vina"));
+        insert(new TripClassification("Leisurely Eastern Heritage & Wine Trail"));
 end
 
 rule "Conclude: Adrenaline Karst Adventure"
@@ -67,7 +67,7 @@ rule "Conclude: Adrenaline Karst Adventure"
         TripFocus(focusType == "COASTAL_KARST")
         TripIntensity(intensityLevel == "ACTIVE")
     then
-        insert(new TripClassification("Adrenalinska avantura po krasu"));
+        insert(new TripClassification("Adrenaline Karst Adventure"));
 end
 
 rule "Conclude: General Trip"
@@ -76,10 +76,10 @@ rule "Conclude: General Trip"
     when
         not TripClassification()
     then
-        insert(new TripClassification("Generalno putovanje po meri"));
+        insert(new TripClassification("Custom General Trip"));
 end
 
-// --- Pravila za dokazivanje TEMPA putovanja ---
+// --- Rules for deducing trip PACING ---
 rule "Deduce: Fast Pacing"
     agenda-group "classification"
     when
@@ -108,7 +108,7 @@ rule "Deduce: Balanced Pacing"
         insert(new TripPacing(PacingLevel.BALANCED));
 end
 
-// --- Pravila za dokazivanje FOKUSA putovanja ---
+// --- Rules for deducing trip FOCUS ---
 rule "Deduce: Alpine Focus"
     agenda-group "classification"
     when
@@ -143,13 +143,13 @@ rule "Deduce: Urban Culture Focus"
     agenda-group "classification"
     when
         accumulate(ItineraryItem(); $totalCount: count(1))
-        accumulate(ItineraryItem(location.type in ("Grad", "Glavni grad", "Istorijski grad")); $urbanCount: count(1))
+        accumulate(ItineraryItem(location.type in ("City", "Capital city", "Historical city")); $urbanCount: count(t1))
         eval($urbanCount > 0 && $urbanCount.doubleValue() / $totalCount >= 0.6)
     then
         insert(new TripFocus("URBAN_CULTURE"));
 end
 
-// --- Pravila za dokazivanje INTENZITETA putovanja ---
+// --- Rules for deducing trip INTENSITY ---
 rule "Deduce: Active Intensity"
     agenda-group "classification"
     when

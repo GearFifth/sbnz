@@ -49,7 +49,7 @@ rule "Assign BEST recommendation to Day 1"
             setTotalTime($plan.getTotalTime() + $location.getVisitTimeMinutes())
         }
         delete($rec);
-        System.out.println("Dan 1: Dodata PRVA NAJBOLJA lokacija " + $location.getName());
+        System.out.println("Day 1: Added FIRST BEST location " + $location.getName());
 end
 
 rule "Iteratively group nearby locations in the same day"
@@ -71,7 +71,7 @@ rule "Iteratively group nearby locations in the same day"
             setTotalTime($plan.getTotalTime() + $newLocation.getVisitTimeMinutes() + $time)
         }
         delete($rec);
-        System.out.println("Dan " + $day + ": Iterativno dodata bliska lokacija " + $newLocation.getName());
+        System.out.println("Day " + $day + ": Iteratively added nearby location " + $newLocation.getName());
 end
 
 rule "Assign NEXT BEST recommendation to a new day"
@@ -86,7 +86,7 @@ rule "Assign NEXT BEST recommendation to a new day"
             setTotalTime($plan.getTotalTime() + $location.getVisitTimeMinutes())
         }
         delete($rec);
-        System.out.println("Dan " + $plan.getDay() + ": Početak sa SLEDEĆOM NAJBOLJOM lokacijom " + $location.getName());
+        System.out.println("Day " + $plan.getDay() + ": Starting with NEXT BEST location " + $location.getName());
 end
 
 rule "Signal that planning is finished"
@@ -108,7 +108,7 @@ rule "Convert DailyPlans to ItineraryItems"
     then
         for (Object loc : $plan.getLocations()) {
             Location location = (Location) loc;
-            itinerary.add(new ItineraryItem($day, location, "Poseta lokaciji: " + location.getName()));
+            itinerary.add(new ItineraryItem($day, location, "Visit location: " + location.getName()));
         }
 end
 
@@ -119,5 +119,5 @@ rule "Cleanup unassigned locations"
         $rec: Recommendation()
     then
         delete($rec);
-        System.out.println("Čišćenje neraspoređene preporuke: " + $rec.getLocation().getName());
+        System.out.println("Cleaning up unassigned recommendation: " + $rec.getLocation().getName());
 end
