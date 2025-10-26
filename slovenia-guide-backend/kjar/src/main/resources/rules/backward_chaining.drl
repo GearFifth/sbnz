@@ -143,7 +143,7 @@ rule "Deduce: Urban Culture Focus"
     agenda-group "classification"
     when
         accumulate(ItineraryItem(); $totalCount: count(1))
-        accumulate(ItineraryItem(location.type in ("City", "Capital city", "Historical city")); $urbanCount: count(t1))
+        accumulate(ItineraryItem(location.type in ("City", "Capital city", "Historical city")); $urbanCount: count(1))
         eval($urbanCount > 0 && $urbanCount.doubleValue() / $totalCount >= 0.6)
     then
         insert(new TripFocus("URBAN_CULTURE"));

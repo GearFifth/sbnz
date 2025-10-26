@@ -18,7 +18,7 @@ rule "Filter for budget_@{budgetCategory}_@{row.rowNumber}"
         $location: Location(ticketPrice > @{priceLimit})
     then
         delete($location);
-        System.out.println("Filtrirana lokacija (TEMPLATE) zbog " + "@{budgetCategory}" + " budžeta: " + $location.getName());
+        System.out.println("Filtered location (TEMPLATE) due to " + "@{budgetCategory}" + " budget: " + $location.getName());
 end
 
 end template
