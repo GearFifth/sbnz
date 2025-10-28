@@ -21,6 +21,7 @@ import {
   Alert,
   ItineraryItem,
   TravelPlanResponse,
+  TrendingLocation,
 } from '../../../../core/models/travel-plan.model';
 import { Tag } from '../../../../core/models/location.model';
 import { TagService } from '../../services/tag.service';
@@ -43,12 +44,13 @@ export class PlanGeneratorComponent implements OnInit, OnDestroy {
   private travelPlanService = inject(TravelPlanService);
   private tagService = inject(TagService);
   private alertPollingInterval: any;
-
-  preferencesForm: FormGroup;
-  allInterests = signal<Tag[]>([]);
-  interestInput = new FormControl('');
-  isDropdownVisible = signal(false);
   private interestFilterSignal = signal<string>('');
+
+  public preferencesForm: FormGroup;
+  public allInterests = signal<Tag[]>([]);
+  public interestInput = new FormControl('');
+  public isDropdownVisible = signal(false);
+  public trendingLocations = signal<TrendingLocation[]>([]);
 
   // Podaci za novi combobox
   readonly months = [
@@ -112,6 +114,10 @@ export class PlanGeneratorComponent implements OnInit, OnDestroy {
     return this.preferencesForm.get('interests') as FormArray;
   }
 
+  get mustHaveLocationIdsArray() {
+    return this.preferencesForm.get('mustHaveLocationIds') as FormArray;
+  }
+
   planByDay = computed(() => {
     const p = this.plan();
     if (!p) return [];
@@ -139,6 +145,7 @@ export class PlanGeneratorComponent implements OnInit, OnDestroy {
         [],
         [Validators.required, Validators.minLength(1)]
       ),
+      mustHaveLocationIds: this.fb.array([]),
     });
   }
 
@@ -149,6 +156,25 @@ export class PlanGeneratorComponent implements OnInit, OnDestroy {
     this.interestInput.valueChanges.subscribe((value) => {
       this.interestFilterSignal.set(value || '');
     });
+    this.travelPlanService.getTrending().subscribe((locations) => {
+      this.trendingLocations.set(locations);
+    });
+  }
+
+  toggleMustHave(location: TrendingLocation): void {
+    const currentIds = this.mustHaveLocationIdsArray.value as string[];
+    if (currentIds.includes(location.locationId)) {
+      const index = currentIds.findIndex((id) => id === location.locationId);
+      this.mustHaveLocationIdsArray.removeAt(index);
+    } else {
+      this.mustHaveLocationIdsArray.push(this.fb.control(location.locationId));
+    }
+  }
+
+  isMustHave(locationId: string): boolean {
+    return (this.mustHaveLocationIdsArray.value as string[]).includes(
+      locationId
+    );
   }
 
   addInterest(interestName: string): void {
@@ -169,7 +195,6 @@ export class PlanGeneratorComponent implements OnInit, OnDestroy {
       .generatePlan(this.preferencesForm.value)
       .subscribe((response) => {
         this.plan.set(response);
-        this.startAlertPolling(response.planId);
       });
   }
 
@@ -184,33 +209,6 @@ export class PlanGeneratorComponent implements OnInit, OnDestroy {
       fitnessLevel: 'MEDIUM',
       travelMonth: 7,
     });
-  }
-
-  private startAlertPolling(planId: string): void {
-    this.alertPollingInterval = setInterval(() => {
-      this.travelPlanService
-        .getCriticalAlerts(planId)
-        .subscribe((newAlerts) => {
-          if (newAlerts && newAlerts.length > 0) {
-            this.plan.update((currentPlan) => {
-              if (!currentPlan) return null;
-              const existingAlertMessages = new Set(
-                currentPlan.alerts.map((a) => a.message)
-              );
-              const uniqueNewAlerts = newAlerts.filter(
-                (a) => !existingAlertMessages.has(a.message)
-              );
-              if (uniqueNewAlerts.length > 0) {
-                return {
-                  ...currentPlan,
-                  alerts: [...currentPlan.alerts, ...uniqueNewAlerts],
-                };
-              }
-              return currentPlan;
-            });
-          }
-        });
-    }, 10000);
   }
 
   ngOnDestroy(): void {

@@ -5,6 +5,7 @@ import {
   Alert,
   TravelPlanResponse,
   TravelPreferences,
+  TrendingLocation,
 } from '../../../core/models/travel-plan.model';
 import { environment } from '../../../../env/env';
 
@@ -20,6 +21,10 @@ export class TravelPlanService {
       `${this.API_URL}/generate`,
       preferences
     );
+  }
+
+  getTrending(): Observable<TrendingLocation[]> {
+    return this.http.get<TrendingLocation[]>(`${this.API_URL}/trending`);
   }
 
   getCriticalAlerts(planId: string): Observable<Alert[]> {

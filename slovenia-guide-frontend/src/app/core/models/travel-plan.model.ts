@@ -26,4 +26,12 @@ export interface TravelPlanResponse {
   itinerary: ItineraryItem[];
   alerts: Alert[];
   tripType: string;
+  mustHaveLocationIds: string[];
+}
+
+export interface TrendingLocation {
+  locationName: string;
+  locationId: string;
+  visitCount: number;
+  topTags: string[];
 }

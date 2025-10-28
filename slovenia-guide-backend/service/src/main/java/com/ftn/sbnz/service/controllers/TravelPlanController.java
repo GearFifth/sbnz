@@ -1,10 +1,9 @@
 package com.ftn.sbnz.service.controllers;
 
 import com.ftn.sbnz.model.dtos.Alert;
-import com.ftn.sbnz.model.dtos.ItineraryItem;
 import com.ftn.sbnz.model.dtos.TravelPreferences;
 import com.ftn.sbnz.model.dtos.travelPlan.TravelPlanResponse;
-import com.ftn.sbnz.model.models.Location;
+import com.ftn.sbnz.model.facts.TrendingLocation;
 import com.ftn.sbnz.service.services.ITravelPlanService;
 import lombok.RequiredArgsConstructor;
 import org.kie.api.runtime.KieSession;
@@ -34,6 +33,11 @@ public class TravelPlanController {
     public ResponseEntity<TravelPlanResponse> generatePlan(@RequestBody TravelPreferences preferences) {
         TravelPlanResponse response = travelPlanService.generatePlan(preferences);
         return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("trending")
+    public ResponseEntity<List<TrendingLocation>> getTrending() {
+        return ResponseEntity.ok(travelPlanService.getTrendingLocations());
     }
 
     @GetMapping("/{planId}/critical-alerts")

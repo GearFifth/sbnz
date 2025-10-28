@@ -1,9 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <kmodule xmlns="http://www.drools.org/xsd/kmodule">
-    <kbase name="sbnzKbase">
-        <ksession name="sbnzRulesSession" default="true"/>
+
+    <kbase name="sbnzKbase" packages="com.ftn.sbnz.rules.alerts,
+                                  com.ftn.sbnz.rules.backward,  com.ftn.sbnz.rules.daytrip, com.ftn.sbnz.rules.filtering,
+                                  com.ftn.sbnz.rules.itinerary,
+                                  com.ftn.sbnz.rules.reachability, com.ftn.sbnz.rules.scoring,
+                                  com.ftn.sbnz.rules.classification"> <ksession name="sbnzRulesSession" default="true"/>
     </kbase>
+
     <kbase name="cepKbase" eventProcessingMode="stream" packages="com.ftn.sbnz.rules.cep">
-        <ksession name="cepSession"/>
+        <ksession name="cepSession" clockType="pseudo"/>
     </kbase>
+
 </kmodule>

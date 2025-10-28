@@ -6,8 +6,10 @@ import com.ftn.sbnz.model.dtos.Recommendation;
 import com.ftn.sbnz.model.dtos.travelPlan.TravelPlanResponse;
 import com.ftn.sbnz.model.dtos.TravelPreferences;
 import com.ftn.sbnz.model.enums.Budget;
+import com.ftn.sbnz.model.facts.TrendingLocation;
 import com.ftn.sbnz.model.facts.TripClassification;
 import com.ftn.sbnz.model.models.Location;
+import com.ftn.sbnz.model.models.Tag;
 import com.ftn.sbnz.model.template.BudgetRuleTemplateModel;
 import com.ftn.sbnz.service.repositories.ILocationRepository;
 import com.ftn.sbnz.service.repositories.IRouteRepository;
@@ -40,6 +42,31 @@ public class TravelPlanService implements ITravelPlanService {
     private final IRuleParameterRepository ruleParameterRepository;
 
     private record PlanningResult(List<ItineraryItem> itinerary, List<Alert> alerts, String tripType) {}
+
+    public List<TrendingLocation> getTrendingLocations() {
+        List<TrendingLocation> trendingList = new ArrayList<>();
+        QueryResults results = cepSession.getQueryResults("getTrendingLocations");
+
+        for (QueryResultsRow row : results) {
+            TrendingLocation trendingFact = (TrendingLocation) row.get("$tr");
+
+            Location fullLocation = locationRepository.findById(trendingFact.getLocationId()).orElse(null);
+
+            List<String> tags = new ArrayList<>();
+            if (fullLocation != null) {
+                tags = fullLocation.getTags().stream()
+                        .map(Tag::getName)
+                        .limit(3)
+                        .collect(Collectors.toList());
+            }
+
+            trendingFact.setTopTags(tags);
+            trendingList.add(trendingFact);
+        }
+
+        trendingList.sort(Comparator.comparing(TrendingLocation::getVisitCount).reversed());
+        return trendingList;
+    }
 
     /**
      * Glavna metoda koja orkestrira ceo proces generisanja plana.

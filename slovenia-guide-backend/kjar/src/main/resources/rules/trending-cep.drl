@@ -1,0 +1,58 @@
+package com.ftn.sbnz.rules.cep;
+
+import com.ftn.sbnz.model.dtos.travelPlan.TravelPlanResponse;
+import com.ftn.sbnz.model.dtos.ItineraryItem;
+import com.ftn.sbnz.model.models.Location;
+import java.util.Date;
+import com.ftn.sbnz.model.facts.TrendingLocation;
+
+declare LocationVisitedEvent
+    @role(event)
+    @timestamp(visitTime)
+
+    locationName: String
+    locationId: java.util.UUID
+    visitTime: java.util.Date
+end
+
+query "getTrendingLocations"
+    $tr: TrendingLocation()
+end
+
+rule "Translate TravelPlanResponse to Visit Events"
+    salience 10
+    when
+        $plan: TravelPlanResponse($items: itinerary)
+    then
+        System.out.println("[CEP] Processing new plan: " + $plan.getPlanId());
+
+        for (Object obj : $items) {
+            ItineraryItem item = (ItineraryItem) obj;
+
+            Location loc = item.getLocation();
+            if (loc != null) {
+                LocationVisitedEvent event = new LocationVisitedEvent(
+                    loc.getName(),
+                    loc.getId(),
+                    new Date()
+                );
+                insert(event);
+            }
+        }
+end
+
+rule "Detect Trending Location"
+    when
+        $firstEvent: LocationVisitedEvent($name: locationName, $id: locationId)
+
+        Number( $count: intValue > 50 ) from accumulate (
+            LocationVisitedEvent( locationId == $id )
+                over window:length( 1000 ),
+            count(1)
+        )
+
+        not( TrendingLocation( locationId == $id ) )
+    then
+        insert( new TrendingLocation($name, $id, $count, null) );
+        System.out.println("[CEP TRENDING] " + $name + " is now trending with " + $count + " visits!");
+end

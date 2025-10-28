@@ -19,4 +19,5 @@ public class TravelPreferences {
     private FitnessLevel fitnessLevel;
     private List<String> interests;
     private int travelMonth;
+    private List<String> mustHaveLocationIds;
 }

@@ -219,3 +219,22 @@ rule "Massive boost for perfect adventurer profile"
         }
         System.out.println("Special bonus for " + $rec.getLocation().getName() + ". New score: " + $rec.getScore());
 end
+
+rule "Ensure 'Must-Have' locations are selected"
+    agenda-group "scoring"
+    salience 1000 //High priority
+    no-loop true
+when
+    $prefs: TravelPreferences($mustHave: mustHaveLocationIds, $mustHave.size > 0)
+
+    $rec: Recommendation(
+        $locationId: location.id.toString(),
+        eval($mustHave.contains($locationId))
+    )
+then
+    modify($rec) {
+        setScore(1000000.0),
+        setReason("Selected as a 'Must-Have' location by the user.")
+    }
+    System.out.println("MUST-HAVE: Boosting " + $rec.getLocation().getName());
+end

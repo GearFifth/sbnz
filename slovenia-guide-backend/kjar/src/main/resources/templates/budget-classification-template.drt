@@ -14,8 +14,15 @@ rule "Filter for budget_@{budgetCategory}_@{row.rowNumber}"
     agenda-group "scoring"
     salience 20
     when
-        TravelPreferences(budget == Budget.valueOf("@{budgetCategory}"))
-        $location: Location(ticketPrice > @{priceLimit})
+        $location: Location(
+            $id: id.toString(),
+            ticketPrice > @{priceLimit}
+        )
+
+        TravelPreferences(
+            budget == Budget.valueOf("@{budgetCategory}"),
+            mustHaveLocationIds not contains $id
+        )
     then
         delete($location);
         System.out.println("Filtered location (TEMPLATE) due to " + "@{budgetCategory}" + " budget: " + $location.getName());
