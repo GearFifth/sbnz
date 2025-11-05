@@ -229,7 +229,8 @@ when
 
     $rec: Recommendation(
         $locationId: location.id.toString(),
-        eval($mustHave.contains($locationId))
+        eval($mustHave.contains($locationId)),
+        $score: score < 1000000.0
     )
 then
     modify($rec) {

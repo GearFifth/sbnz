@@ -17,8 +17,15 @@ rule "Filter out locations not accessible by public transport"
     agenda-group "scoring"
     salience 20
     when
-        TravelPreferences(transport == Transport.PUBLIC_TRANSPORT)
-        $location: Location(publicTransportAccessibility == PublicTransportAccessibility.CAR_ONLY)
+        TravelPreferences(
+            transport == Transport.PUBLIC_TRANSPORT,
+            $mustHave: mustHaveLocationIds
+        )
+        $location: Location(
+            $id: id.toString(),
+            publicTransportAccessibility == PublicTransportAccessibility.CAR_ONLY,
+            eval($mustHave not contains $id)
+        )
     then
         delete($location);
         System.out.println("Filtered location due to transport: " + $location.getName());
@@ -28,8 +35,16 @@ rule "Filter out locations based on fitness level"
     agenda-group "scoring"
     salience 20
     when
-        $prefs: TravelPreferences($fitness: fitnessLevel)
-        $location: Location($reqFitness: requiredFitness, eval($reqFitness.ordinal() > $fitness.ordinal()))
+        $prefs: TravelPreferences(
+            $fitness: fitnessLevel,
+            $mustHave: mustHaveLocationIds
+        )
+        $location: Location(
+            $id: id.toString(),
+            $reqFitness: requiredFitness,
+            eval($reqFitness.ordinal() > $fitness.ordinal()),
+            eval($mustHave not contains $id)
+        )
     then
         delete($location);
         System.out.println("Filtered location due to fitness level: " + $location.getName());
@@ -40,36 +55,20 @@ rule "Filter out seasonally closed locations"
     agenda-group "scoring"
     salience 20
     when
-        $prefs: TravelPreferences($month: travelMonth)
-        $location: Location(seasonal == true, openingMonth > $month || closingMonth < $month)
+        $prefs: TravelPreferences(
+            $month: travelMonth,
+            $mustHave: mustHaveLocationIds
+        )
+        $location: Location(
+            $id: id.toString(),
+            seasonal == true,
+            (openingMonth > $month || closingMonth < $month),
+            eval($mustHave not contains $id)
+        )
     then
         delete($location);
         System.out.println("Filtered location due to season: " + $location.getName());
 end
-
-//rule "Filter expensive locations for LOW budget"
-//    agenda-group "scoring"
-//    salience 20
-//    when
-//        TravelPreferences(budget == Budget.LOW)
-//        RuleParameter(paramKey == "BUDGET_LIMIT_LOW", $limit: paramValue)
-//        $location: Location(ticketPrice > $limit)
-//    then
-//        delete($location);
-//        System.out.println("Filtered location due to low budget: " + $location.getName());
-//end
-//
-//rule "Filter expensive locations for MEDIUM budget"
-//    agenda-group "scoring"
-//    salience 20
-//    when
-//        TravelPreferences(budget == Budget.MEDIUM)
-//        RuleParameter(paramKey == "BUDGET_LIMIT_MEDIUM", $limit: paramValue)
-//        $location: Location(ticketPrice > $limit)
-//    then
-//        delete($location);
-//        System.out.println("Filtered location due to medium budget: " + $location.getName());
-//end
 
 rule "Filter locations if access road is closed"
     agenda-group "scoring"
